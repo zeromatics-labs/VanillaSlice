@@ -57,7 +57,6 @@ public class CliRunner
 
     private async Task<int> GenerateAsync(CliOptions options)
     {
-        // Validate options
         var (isValid, errorMessage) = options.ValidateForGenerate();
         if (!isValid)
         {
@@ -79,15 +78,16 @@ public class CliRunner
         Console.WriteLine();
         Console.WriteLine("SliceFactory - Generating Slice");
         Console.WriteLine("================================");
-        Console.WriteLine($"  Component:    {sliceDefinition.ComponentPrefix}");
-        Console.WriteLine($"  Plural:       {sliceDefinition.FeaturePluralName}");
         Console.WriteLine($"  Namespace:    {sliceDefinition.Namespace}");
-        Console.WriteLine($"  Directory:    {sliceDefinition.DirectoryName}");
+        Console.WriteLine($"  Directory:    {sliceDefinition.Directory}");
         Console.WriteLine($"  Primary Key:  {sliceDefinition.PrimaryKeyType}");
-        Console.WriteLine($"  Form:         {(sliceDefinition.GenerateForm ? "Yes" : "No")}");
-        Console.WriteLine($"  Listing:      {(sliceDefinition.GenerateListing ? "Yes" : "No")}");
-        Console.WriteLine($"  SelectList:   {(sliceDefinition.GenerateSelectList ? "Yes" : "No")}");
+        if (sliceDefinition.Listing is { } l)  Console.WriteLine($"  Listing:      {l.Name} (prefix: {l.Prefix})");
+        if (sliceDefinition.Form is { } f)     Console.WriteLine($"  Form:         {f.Name} (prefix: {f.Prefix})");
+        if (sliceDefinition.Action is { } a)   Console.WriteLine($"  Action:       {a.Name} (prefix: {a.Prefix})");
+        if (sliceDefinition.SelectList is { } s) Console.WriteLine($"  SelectList:   {s.Name} (prefix: {s.Prefix})");
         Console.WriteLine();
+
+        var projectNs = $"{profile.Projects.FirstOrDefault()?.NameSpace}.{sliceDefinition.Namespace}";
 
         if (options.Preview)
         {
@@ -95,26 +95,20 @@ public class CliRunner
             Console.WriteLine();
 
             var previewFiles = await _featureService.PreviewFeatureFilesAsync(
-                componentPrefix: sliceDefinition.ComponentPrefix,
-                featurePluralName: sliceDefinition.FeaturePluralName,
+                listing: sliceDefinition.Listing,
+                form: sliceDefinition.Form,
+                action: sliceDefinition.Action,
+                selectList: sliceDefinition.SelectList,
                 moduleNamespace: sliceDefinition.Namespace,
-                projectNamespace: $"{profile.Projects.FirstOrDefault()?.NameSpace}.{sliceDefinition.Namespace}",
+                projectNamespace: projectNs,
                 primaryKeyType: sliceDefinition.PrimaryKeyType,
                 basePath: _basePath,
-                directoryName: sliceDefinition.DirectoryName,
-                hasForm: sliceDefinition.GenerateForm,
-                hasListing: sliceDefinition.GenerateListing,
-                hasSelectList: sliceDefinition.GenerateSelectList,
-                selectListModelType: sliceDefinition.SelectListModelType,
-                selectListDataType: sliceDefinition.SelectListDataType,
-                projects: profile.Projects.ToList()
-            );
+                directoryName: sliceDefinition.Directory,
+                projects: profile.Projects.ToList());
 
             Console.WriteLine("Files that would be generated:");
             foreach (var file in previewFiles)
-            {
                 Console.WriteLine($"  [{file.ProjectType}/{file.SliceType}] {file.FilePath}");
-            }
 
             return 0;
         }
@@ -124,27 +118,20 @@ public class CliRunner
             Console.WriteLine("Generating files...");
 
             var feature = await _featureService.CreateFeatureAsync(
-                componentPrefix: sliceDefinition.ComponentPrefix,
-                featurePluralName: sliceDefinition.FeaturePluralName,
+                listing: sliceDefinition.Listing,
+                form: sliceDefinition.Form,
+                action: sliceDefinition.Action,
+                selectList: sliceDefinition.SelectList,
                 moduleNamespace: sliceDefinition.Namespace,
-                projectNamespace: $"{profile.Projects.FirstOrDefault()?.NameSpace}.{sliceDefinition.Namespace}",
+                projectNamespace: projectNs,
                 primaryKeyType: sliceDefinition.PrimaryKeyType,
                 basePath: _basePath,
-                directoryName: sliceDefinition.DirectoryName,
-                hasForm: sliceDefinition.GenerateForm,
-                hasListing: sliceDefinition.GenerateListing,
-                hasSelectList: sliceDefinition.GenerateSelectList,
-                selectListModelType: sliceDefinition.SelectListModelType,
-                selectListDataType: sliceDefinition.SelectListDataType,
+                directoryName: sliceDefinition.Directory,
                 projects: profile.Projects.ToList(),
                 profileConfiguration: JsonSerializer.Serialize(profile),
-                uiFramework: profile.UIFramework ?? "TailwindCSS"
-            );
+                uiFramework: profile.UIFramework ?? "TailwindCSS");
 
-            // Get generated files from database
             var generatedFiles = feature.Files.Select(f => f.FilePath).ToList();
-
-            // Update manifest
             sliceDefinition.GeneratedFiles = generatedFiles;
             await _manifestService.AddOrUpdateSliceAsync(sliceDefinition, generatedFiles);
 
@@ -153,15 +140,11 @@ public class CliRunner
             Console.WriteLine();
             Console.WriteLine("Generated files:");
             foreach (var file in generatedFiles)
-            {
-                var relativePath = Path.GetRelativePath(_basePath, file);
-                Console.WriteLine($"  {relativePath}");
-            }
+                Console.WriteLine($"  {Path.GetRelativePath(_basePath, file)}");
 
             Console.WriteLine();
             Console.WriteLine($"Manifest updated: {_manifestService.ManifestPath}");
             Console.WriteLine($"Slice ID: {sliceDefinition.Id}");
-
             return 0;
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
@@ -199,38 +182,32 @@ public class CliRunner
         }
 
         Console.WriteLine($"Regenerating slice: {slice.Id}");
-        Console.WriteLine($"  Component: {slice.ComponentPrefix}");
         Console.WriteLine($"  Namespace: {slice.Namespace}");
+        Console.WriteLine($"  Directory: {slice.Directory}");
         Console.WriteLine();
 
-        // Convert slice definition to CLI options and regenerate
+        // Build CliOptions from v2 SliceDefinition (descriptors already have names+prefixes)
         var regenerateOptions = new CliOptions
         {
-            Command = CliCommand.Generate,
-            ComponentPrefix = slice.ComponentPrefix,
-            FeaturePluralName = slice.FeaturePluralName,
-            Namespace = slice.Namespace,
-            DirectoryName = slice.DirectoryName,
-            PrimaryKeyType = slice.PrimaryKeyType,
-            GenerateForm = slice.GenerateForm,
-            GenerateListing = slice.GenerateListing,
-            GenerateSelectList = slice.GenerateSelectList,
-            SelectListModelType = slice.SelectListModelType,
-            SelectListDataType = slice.SelectListDataType,
-            Preview = options.Preview
+            Command           = CliCommand.Generate,
+            ListingName       = slice.Listing?.Name,
+            FormName          = slice.Form?.Name,
+            ActionName        = slice.Action?.Name,
+            SelectListName    = slice.SelectList?.Name,
+            SelectListModelType = slice.SelectList?.ModelType ?? "SelectOption",
+            SelectListDataType  = slice.SelectList?.DataType ?? "string",
+            Namespace         = slice.Namespace,
+            DirectoryName     = slice.Directory,
+            PrimaryKeyType    = slice.PrimaryKeyType,
+            Preview           = options.Preview
         };
 
-        // For regeneration, we need to handle the "already exists" case differently
-        // First, try to delete from database (not files), then regenerate
         try
         {
-            // Note: This is a simplified approach - in production you might want
-            // to add a proper "force regenerate" flow in FeatureManagementService
             return await GenerateAsync(regenerateOptions);
         }
         catch (InvalidOperationException)
         {
-            // Feature already exists - this is expected for regeneration
             Console.WriteLine("Note: Feature already exists in database. Files have been updated.");
             return 0;
         }
@@ -294,23 +271,23 @@ public class CliRunner
         Console.WriteLine("SliceFactory - Registered Slices");
         Console.WriteLine("=================================");
         Console.WriteLine();
-        Console.WriteLine($"{"ID",-35} {"Prefix",-20} {"Namespace",-20} {"Types",-15} {"Generated"}");
+        Console.WriteLine($"{"ID",-40} {"Namespace",-25} {"Types",-20} {"Generated"}");
         Console.WriteLine(new string('-', 110));
 
-        foreach (var slice in slices.OrderBy(s => s.Namespace).ThenBy(s => s.ComponentPrefix))
+        foreach (var slice in slices.OrderBy(s => s.Namespace).ThenBy(s => s.Directory))
         {
             var types = new List<string>();
-            if (slice.GenerateForm) types.Add("Form");
-            if (slice.GenerateListing) types.Add("Listing");
-            if (slice.GenerateSelectList) types.Add("Select");
+            if (slice.Listing is not null) types.Add("Listing");
+            if (slice.Form is not null)    types.Add("Form");
+            if (slice.Action is not null)  types.Add("Action");
+            if (slice.SelectList is not null) types.Add("Select");
 
-            Console.WriteLine($"{slice.Id,-35} {slice.ComponentPrefix,-20} {slice.Namespace,-20} {string.Join(",", types),-15} {slice.LastGeneratedAt:yyyy-MM-dd HH:mm}");
+            Console.WriteLine($"{slice.Id,-40} {slice.Namespace,-25} {string.Join(",", types),-20} {slice.LastGeneratedAt:yyyy-MM-dd HH:mm}");
         }
 
         Console.WriteLine();
         Console.WriteLine($"Total: {slices.Count} slices");
         Console.WriteLine($"Manifest: {_manifestService.ManifestPath}");
-
         return 0;
     }
 

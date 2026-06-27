@@ -206,19 +206,33 @@ public class ManifestService
     /// </summary>
     public static SliceDefinition FromCliOptions(CliOptions options)
     {
+        SliceDescriptor? listing = options.ListingName is { } ln
+            ? new SliceDescriptor(ln, NameDerivationService.DerivePrefix(ln))
+            : null;
+
+        SliceDescriptor? form = options.FormName is { } fn
+            ? new SliceDescriptor(fn, NameDerivationService.DerivePrefix(fn))
+            : null;
+
+        SliceDescriptor? action = options.ActionName is { } an
+            ? new SliceDescriptor(an, NameDerivationService.DerivePrefix(an))
+            : null;
+
+        SelectListDescriptor? selectList = options.SelectListName is { } sln
+            ? new SelectListDescriptor(sln, NameDerivationService.DerivePrefix(sln),
+                options.SelectListModelType, options.SelectListDataType)
+            : null;
+
         return new SliceDefinition
         {
-            Id = SliceDefinition.GenerateId(options.Namespace!, options.ComponentPrefix!),
-            ComponentPrefix = options.ComponentPrefix!,
-            FeaturePluralName = options.FeaturePluralName!,
-            Namespace = options.Namespace!,
-            DirectoryName = options.DirectoryName!,
+            Id             = SliceDefinition.GenerateId(options.Namespace!, options.DirectoryName!),
+            Namespace      = options.Namespace!,
+            Directory      = options.DirectoryName!,
             PrimaryKeyType = options.PrimaryKeyType,
-            GenerateForm = options.GenerateForm,
-            GenerateListing = options.GenerateListing,
-            GenerateSelectList = options.GenerateSelectList,
-            SelectListModelType = options.SelectListModelType,
-            SelectListDataType = options.SelectListDataType
+            Listing        = listing,
+            Form           = form,
+            Action         = action,
+            SelectList     = selectList
         };
     }
 
