@@ -1,6 +1,3 @@
-using Microsoft.TemplateEngine.Edge;
-using Microsoft.TemplateEngine.Edge.Settings;
-using Microsoft.TemplateEngine.Orchestrator.RunnableProjects;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,12 +5,12 @@ namespace {{RootNamespace}}.SliceFactory.Services;
 
 public class TemplateEngineService
 {
-    private readonly IWebHostEnvironment _environment;
+    private readonly IContentRootProvider _contentRootProvider;
     private readonly PluralizationService _pluralizationService;
 
-    public TemplateEngineService(IWebHostEnvironment environment, PluralizationService pluralizationService)
+    public TemplateEngineService(IContentRootProvider contentRootProvider, PluralizationService pluralizationService)
     {
-        _environment = environment;
+        _contentRootProvider = contentRootProvider;
         _pluralizationService = pluralizationService;
     }
 
@@ -22,7 +19,7 @@ public class TemplateEngineService
         string sliceType,
         Dictionary<string, object> parameters)
     {
-        var templatePath = Path.Combine(_environment.ContentRootPath, "Templates", projectType, sliceType);
+        var templatePath = Path.Combine(_contentRootProvider.ContentRootPath, "Templates", projectType, sliceType);
 
         if (!Directory.Exists(templatePath))
         {

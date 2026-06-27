@@ -72,6 +72,9 @@ static async Task<int> RunWebUiModeAsync(string[] args)
     // JSON-based metadata store (singleton — loaded once, held in memory)
     builder.Services.AddSingleton<JsonFeatureStore>();
 
+    // Content root provider (web mode uses IWebHostEnvironment)
+    builder.Services.AddSingleton<IContentRootProvider, WebContentRootProvider>();
+
     // Add pluralization service
     builder.Services.AddScoped<PluralizationService>();
 
