@@ -52,7 +52,7 @@ public class FeatureManagementService
     {
         var result = _store.Features
             .Where(f => f.ModuleNamespace == moduleNamespace)
-            .OrderBy(f => f.ComponentPrefix)
+            .OrderBy(f => f.DirectoryName)
             .ToList();
         return Task.FromResult(result);
     }
