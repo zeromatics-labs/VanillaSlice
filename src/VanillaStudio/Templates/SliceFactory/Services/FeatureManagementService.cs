@@ -25,13 +25,13 @@ public class FeatureManagementService
     }
 
     /// <summary>
-    /// Get all features ordered by module then component prefix
+    /// Get all features ordered by module then directory name
     /// </summary>
     public Task<List<Feature>> GetAllFeaturesAsync()
     {
         var result = _store.Features
             .OrderBy(f => f.ModuleNamespace)
-            .ThenBy(f => f.ComponentPrefix)
+            .ThenBy(f => f.DirectoryName)
             .ToList();
         return Task.FromResult(result);
     }
@@ -61,58 +61,47 @@ public class FeatureManagementService
     /// Create a new feature and generate its files
     /// </summary>
     public async Task<Feature> CreateFeatureAsync(
-        string componentPrefix,
-        string featurePluralName,
+        SliceDescriptor? listing,
+        SliceDescriptor? form,
+        SliceDescriptor? action,
+        SelectListDescriptor? selectList,
         string moduleNamespace,
         string projectNamespace,
         string primaryKeyType,
         string basePath,
         string directoryName,
-        bool hasForm,
-        bool hasListing,
-        bool hasSelectList,
-        string selectListModelType,
-        string selectListDataType,
         List<Project> projects,
         string? profileConfiguration = null,
         string uiFramework = "Bootstrap")
     {
-        // Check if feature already exists
+        // Uniqueness check by namespace + directory
         var existingFeature = _store.Features
-            .FirstOrDefault(f => f.ModuleNamespace == moduleNamespace && f.ComponentPrefix == componentPrefix);
+            .FirstOrDefault(f => f.ModuleNamespace == moduleNamespace
+                              && f.DirectoryName == directoryName);
 
         if (existingFeature != null)
-        {
-            throw new InvalidOperationException($"Feature '{componentPrefix}' already exists in module '{moduleNamespace}'");
-        }
+            throw new InvalidOperationException(
+                $"Feature at '{directoryName}' already exists in module '{moduleNamespace}'");
 
         var feature = new Feature
         {
-            ComponentPrefix = componentPrefix,
-            FeaturePluralName = featurePluralName,
-            ModuleNamespace = moduleNamespace,
+            Listing          = listing,
+            Form             = form,
+            Action           = action,
+            SelectList       = selectList,
+            ModuleNamespace  = moduleNamespace,
             ProjectNamespace = projectNamespace,
-            PrimaryKeyType = primaryKeyType,
-            BasePath = basePath,
-            DirectoryName = directoryName,
-            HasForm = hasForm,
-            HasListing = hasListing,
-            HasSelectList = hasSelectList,
-            SelectListModelType = selectListModelType,
-            SelectListDataType = selectListDataType,
-            UIFramework = uiFramework,
+            PrimaryKeyType   = primaryKeyType,
+            BasePath         = basePath,
+            DirectoryName    = directoryName,
+            UIFramework      = uiFramework,
             ProfileConfiguration = profileConfiguration,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt        = DateTime.UtcNow
         };
 
         _store.Features.Add(feature);
-
-        // Generate files for each project
         await GenerateFeatureFilesAsync(feature, projects);
-
-        // Save persists the feature plus all generated file/project records
         await _store.SaveAsync();
-
         return feature;
     }
 
@@ -197,104 +186,71 @@ public class FeatureManagementService
     /// Preview files that would be generated for a feature
     /// </summary>
     public async Task<List<FeatureFilePreview>> PreviewFeatureFilesAsync(
-        string componentPrefix,
-        string featurePluralName,
+        SliceDescriptor? listing,
+        SliceDescriptor? form,
+        SliceDescriptor? action,
+        SelectListDescriptor? selectList,
         string moduleNamespace,
         string projectNamespace,
         string primaryKeyType,
         string basePath,
         string directoryName,
-        bool hasForm,
-        bool hasListing,
-        bool hasSelectList,
-        string selectListModelType,
-        string selectListDataType,
         List<Project> projects)
     {
         var previews = new List<FeatureFilePreview>();
-        var parameters = _templateEngine.CreateParameterDictionary(componentPrefix, moduleNamespace, projectNamespace, primaryKeyType, null, selectListModelType, selectListDataType);
 
         foreach (var project in projects)
         {
-            var templateDirectoryName = GetTemplateDirectoryName(project.ProjectType);
-            if (string.IsNullOrEmpty(templateDirectoryName))
-                continue;
+            var templateDir = GetTemplateDirectoryName(project.ProjectType);
+            if (string.IsNullOrEmpty(templateDir)) continue;
 
             var projectRootPath = Path.Combine(basePath, project.Path ?? "");
             var projectNs = project.NameSpace ?? "";
             var baseFeaturePath = Path.Combine(projectRootPath, directoryName);
 
-            if (hasListing)
+            async Task AddPreviews(string sliceType, string slicePath, Dictionary<string, object> p)
             {
-                var listingPath = Path.Combine(baseFeaturePath, $"{featurePluralName}Listing");
-                var listingFiles = await GetTemplateFilesPreviewAsync(templateDirectoryName, "Listing", listingPath, parameters);
-                foreach (var f in listingFiles)
+                var files = await GetTemplateFilesPreviewAsync(templateDir, sliceType, slicePath, p);
+                foreach (var f in files)
                 {
-                    var fp = Path.Combine(listingPath, f.Key);
+                    var fp = Path.Combine(slicePath, f.Key);
                     previews.Add(new FeatureFilePreview
                     {
-                        ProjectType = templateDirectoryName,
-                        SliceType = "Listing",
-                        FileName = f.Key,
-                        FilePath = fp,
+                        ProjectType = templateDir, SliceType = sliceType,
+                        FileName = f.Key, FilePath = fp,
                         DirectoryPath = Path.GetDirectoryName(fp) ?? "",
-                        ProjectRootPath = projectRootPath,
-                        ProjectNamespace = projectNs,
+                        ProjectRootPath = projectRootPath, ProjectNamespace = projectNs,
                         ModuleNamespace = moduleNamespace,
-                        ComponentPrefix = componentPrefix,
-                        IsNew = true,
-                        Content = f.Value
+                        ComponentPrefix = p["ComponentPrefix"].ToString() ?? "",
+                        IsNew = true, Content = f.Value
                     });
                 }
             }
 
-            if (hasForm)
-            {
-                var formPath = Path.Combine(baseFeaturePath, $"{componentPrefix}Form");
-                var formFiles = await GetTemplateFilesPreviewAsync(templateDirectoryName, "Form", formPath, parameters);
-                foreach (var f in formFiles)
-                {
-                    var fp = Path.Combine(formPath, f.Key);
-                    previews.Add(new FeatureFilePreview
-                    {
-                        ProjectType = templateDirectoryName,
-                        SliceType = "Form",
-                        FileName = f.Key,
-                        FilePath = fp,
-                        DirectoryPath = Path.GetDirectoryName(fp) ?? "",
-                        ProjectRootPath = projectRootPath,
-                        ProjectNamespace = projectNs,
-                        ModuleNamespace = moduleNamespace,
-                        ComponentPrefix = componentPrefix,
-                        IsNew = true,
-                        Content = f.Value
-                    });
-                }
-            }
+            if (listing is not null)
+                await AddPreviews("Listing",
+                    Path.Combine(baseFeaturePath, $"{listing.Name}Listing"),
+                    _templateEngine.CreateParameterDictionary(listing.Prefix, moduleNamespace,
+                        projectNamespace, primaryKeyType, componentPrefixPlural: listing.Name));
 
-            if (hasSelectList)
-            {
-                var selectListPath = Path.Combine(baseFeaturePath, $"{featurePluralName}SelectList");
-                var selectListFiles = await GetTemplateFilesPreviewAsync(templateDirectoryName, "SelectList", selectListPath, parameters);
-                foreach (var f in selectListFiles)
-                {
-                    var fp = Path.Combine(selectListPath, f.Key);
-                    previews.Add(new FeatureFilePreview
-                    {
-                        ProjectType = templateDirectoryName,
-                        SliceType = "SelectList",
-                        FileName = f.Key,
-                        FilePath = fp,
-                        DirectoryPath = Path.GetDirectoryName(fp) ?? "",
-                        ProjectRootPath = projectRootPath,
-                        ProjectNamespace = projectNs,
-                        ModuleNamespace = moduleNamespace,
-                        ComponentPrefix = componentPrefix,
-                        IsNew = true,
-                        Content = f.Value
-                    });
-                }
-            }
+            if (form is not null)
+                await AddPreviews("Form",
+                    Path.Combine(baseFeaturePath, $"{form.Prefix}Form"),
+                    _templateEngine.CreateParameterDictionary(form.Prefix, moduleNamespace,
+                        projectNamespace, primaryKeyType));
+
+            if (action is not null)
+                await AddPreviews("Action",
+                    Path.Combine(baseFeaturePath, $"{action.Prefix}Action"),
+                    _templateEngine.CreateParameterDictionary(action.Prefix, moduleNamespace,
+                        projectNamespace, primaryKeyType));
+
+            if (selectList is not null)
+                await AddPreviews("SelectList",
+                    Path.Combine(baseFeaturePath, $"{selectList.Name}SelectList"),
+                    _templateEngine.CreateParameterDictionary(selectList.Prefix, moduleNamespace,
+                        projectNamespace, primaryKeyType, selectListModelType: selectList.ModelType,
+                        selectListDataType: selectList.DataType));
         }
 
         return previews;
@@ -367,53 +323,61 @@ public class FeatureManagementService
 
     private async Task GenerateFeatureFilesAsync(Feature feature, List<Project> projects)
     {
-        var parameters = _templateEngine.CreateParameterDictionary(
-            feature.ComponentPrefix,
-            feature.ModuleNamespace,
-            feature.ProjectNamespace,
-            feature.PrimaryKeyType,
-            feature.UIFramework,
-            feature.SelectListModelType,
-            feature.SelectListDataType);
-
         foreach (var project in projects)
         {
-            var templateDirectoryName = GetTemplateDirectoryName(project.ProjectType);
-            if (string.IsNullOrEmpty(templateDirectoryName))
-                continue;
+            var templateDir = GetTemplateDirectoryName(project.ProjectType);
+            if (string.IsNullOrEmpty(templateDir)) continue;
 
             var baseFeaturePath = Path.Combine(feature.BasePath, project.Path, feature.DirectoryName);
 
             feature.Projects.Add(new FeatureProject
             {
-                FeatureId = feature.Id,
-                ProjectType = project.ProjectType,
-                // Store relative to solution root so paths are portable across machines
-                ProjectPath = Path.GetRelativePath(feature.BasePath, baseFeaturePath),
+                FeatureId     = feature.Id,
+                ProjectType   = project.ProjectType,
+                ProjectPath   = Path.GetRelativePath(feature.BasePath, baseFeaturePath),
                 ProjectNamespace = project.NameSpace ?? "",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt     = DateTime.UtcNow
             });
 
-            if (feature.HasListing)
+            if (feature.Listing is { } listing)
             {
-                var listingPath = Path.Combine(baseFeaturePath, $"{feature.FeaturePluralName}Listing");
-                await GenerateSliceFilesAsync(feature, templateDirectoryName, "Listing", listingPath, parameters);
+                var p = _templateEngine.CreateParameterDictionary(
+                    listing.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
+                    feature.PrimaryKeyType, feature.UIFramework,
+                    componentPrefixPlural: listing.Name);  // listing name IS the plural
+                var path = Path.Combine(baseFeaturePath, $"{listing.Name}Listing");
+                await GenerateSliceFilesAsync(feature, templateDir, "Listing", path, p);
             }
 
-            if (feature.HasForm)
+            if (feature.Form is { } form)
             {
-                var formPath = Path.Combine(baseFeaturePath, $"{feature.ComponentPrefix}Form");
-                await GenerateSliceFilesAsync(feature, templateDirectoryName, "Form", formPath, parameters);
+                var p = _templateEngine.CreateParameterDictionary(
+                    form.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
+                    feature.PrimaryKeyType, feature.UIFramework);
+                var path = Path.Combine(baseFeaturePath, $"{form.Prefix}Form");
+                await GenerateSliceFilesAsync(feature, templateDir, "Form", path, p);
             }
 
-            if (feature.HasSelectList)
+            if (feature.Action is { } action)
             {
-                var selectListPath = Path.Combine(baseFeaturePath, $"{feature.FeaturePluralName}SelectList");
-                await GenerateSliceFilesAsync(feature, templateDirectoryName, "SelectList", selectListPath, parameters);
+                var p = _templateEngine.CreateParameterDictionary(
+                    action.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
+                    feature.PrimaryKeyType, feature.UIFramework);
+                var path = Path.Combine(baseFeaturePath, $"{action.Prefix}Action");
+                await GenerateSliceFilesAsync(feature, templateDir, "Action", path, p);
+            }
+
+            if (feature.SelectList is { } selectList)
+            {
+                var p = _templateEngine.CreateParameterDictionary(
+                    selectList.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
+                    feature.PrimaryKeyType, feature.UIFramework,
+                    selectList.ModelType, selectList.DataType);
+                var path = Path.Combine(baseFeaturePath, $"{selectList.Name}SelectList");
+                await GenerateSliceFilesAsync(feature, templateDir, "SelectList", path, p);
             }
         }
 
-        // Update service registrations and navigation menus after generating files
         await _registrationService.UpdateRegistrationsForFeatureAsync(feature, projects);
         await _navigationService.UpdateNavigationForFeatureAsync(feature, projects);
     }
@@ -532,7 +496,11 @@ public class FeatureManagementService
                     IsNew = false,
                     ProjectNamespace = projectNamespace,
                     ModuleNamespace = feature.ModuleNamespace,
-                    ComponentPrefix = feature.ComponentPrefix
+                    ComponentPrefix = feature.Listing?.Prefix
+                               ?? feature.Form?.Prefix
+                               ?? feature.Action?.Prefix
+                               ?? feature.SelectList?.Prefix
+                               ?? ""
                 });
             }
         }
