@@ -22,27 +22,25 @@ public class RegistrationManagementService
     /// </summary>
     public async Task UpdateRegistrationsForFeatureAsync(Feature feature, List<Project> projects)
     {
+        var label = feature.Listing?.Prefix ?? feature.Form?.Prefix
+                 ?? feature.Action?.Prefix ?? feature.SelectList?.Prefix ?? feature.DirectoryName;
         try
         {
-            _logger.LogInformation("Updating service registrations for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogInformation("Updating service registrations for feature: {Label}", label);
 
             foreach (var project in projects)
             {
                 if (project.ProjectType == ProjectType.ServerSideServices)
-                {
                     await UpdateServerSideRegistrationsAsync(feature, project);
-                }
                 else if (project.ProjectType == ProjectType.ClientShared)
-                {
                     await UpdateClientSideRegistrationsAsync(feature, project);
-                }
             }
 
-            _logger.LogInformation("Successfully updated service registrations for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogInformation("Successfully updated service registrations for feature: {Label}", label);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update service registrations for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogError(ex, "Failed to update service registrations for feature: {Label}", label);
             throw;
         }
     }
@@ -52,9 +50,9 @@ public class RegistrationManagementService
     /// </summary>
     public async Task RemoveRegistrationsForFeatureAsync(Feature feature, List<Project> projects)
     {
-        _logger.LogWarning("Registration removal not supported with placeholder-based approach for feature: {ComponentPrefix}", feature.ComponentPrefix);
-        // Note: With placeholder approach, we don't remove registrations automatically
-        // This would require manual cleanup or a more sophisticated approach
+        var label = feature.Listing?.Prefix ?? feature.Form?.Prefix
+                 ?? feature.Action?.Prefix ?? feature.SelectList?.Prefix ?? feature.DirectoryName;
+        _logger.LogWarning("Registration removal not supported with placeholder-based approach for feature: {Label}", label);
         await Task.CompletedTask;
     }
 
@@ -86,7 +84,6 @@ public class RegistrationManagementService
 
     private string GetRegistrationFilePath(Project project, string basePath)
     {
-        // Navigate up from the Features directory to find the Extensions directory
         var projectPath = project.Path?.Replace("\\Features", "") ?? "";
         return Path.Combine(basePath, projectPath, "Extensions", "FeaturesRegistrationExt.cs");
     }
@@ -94,25 +91,30 @@ public class RegistrationManagementService
     private List<string> GenerateServerSideRegistrations(Feature feature)
     {
         var registrations = new List<string>();
-        var moduleNamespace = feature.ModuleNamespace;
-        var componentPrefix = feature.ComponentPrefix;
+        var ns = feature.ModuleNamespace;
 
-        // Add comment for the feature
-        registrations.Add($"            // {componentPrefix}");
-
-        if (feature.HasListing)
+        if (feature.Listing is { } l)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}ListingDataService, Features.{moduleNamespace}.{componentPrefix}ListingServerDataService>();");
+            registrations.Add($"            // {l.Prefix} Listing");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{l.Prefix}ListingDataService, Features.{ns}.{l.Prefix}ListingServerDataService>();");
         }
 
-        if (feature.HasForm)
+        if (feature.Form is { } f)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}FormDataService, Features.{moduleNamespace}.{componentPrefix}FormServerDataService>();");
+            registrations.Add($"            // {f.Prefix} Form");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{f.Prefix}FormDataService, Features.{ns}.{f.Prefix}FormServerDataService>();");
         }
 
-        if (feature.HasSelectList)
+        if (feature.Action is { } a)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}SelectListDataService, Features.{moduleNamespace}.{componentPrefix}SelectListServerDataService>();");
+            registrations.Add($"            // {a.Prefix} Action");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{a.Prefix}ActionDataService, Features.{ns}.{a.Prefix}ActionServerDataService>();");
+        }
+
+        if (feature.SelectList is { } s)
+        {
+            registrations.Add($"            // {s.Prefix} SelectList");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{s.Prefix}SelectListDataService, Features.{ns}.{s.Prefix}SelectListServerDataService>();");
         }
 
         return registrations;
@@ -121,25 +123,30 @@ public class RegistrationManagementService
     private List<string> GenerateClientSideRegistrations(Feature feature)
     {
         var registrations = new List<string>();
-        var moduleNamespace = feature.ModuleNamespace;
-        var componentPrefix = feature.ComponentPrefix;
+        var ns = feature.ModuleNamespace;
 
-        // Add comment for the feature
-        registrations.Add($"            // {componentPrefix}");
-
-        if (feature.HasListing)
+        if (feature.Listing is { } l)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}ListingDataService, Features.{moduleNamespace}.{componentPrefix}ListingClientDataService>();");
+            registrations.Add($"            // {l.Prefix} Listing");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{l.Prefix}ListingDataService, Features.{ns}.{l.Prefix}ListingClientDataService>();");
         }
 
-        if (feature.HasForm)
+        if (feature.Form is { } f)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}FormDataService, Features.{moduleNamespace}.{componentPrefix}FormClientDataService>();");
+            registrations.Add($"            // {f.Prefix} Form");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{f.Prefix}FormDataService, Features.{ns}.{f.Prefix}FormClientDataService>();");
         }
 
-        if (feature.HasSelectList)
+        if (feature.Action is { } a)
         {
-            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{moduleNamespace}.I{componentPrefix}SelectListDataService, Features.{moduleNamespace}.{componentPrefix}SelectListClientDataService>();");
+            registrations.Add($"            // {a.Prefix} Action");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{a.Prefix}ActionDataService, Features.{ns}.{a.Prefix}ActionClientDataService>();");
+        }
+
+        if (feature.SelectList is { } s)
+        {
+            registrations.Add($"            // {s.Prefix} SelectList");
+            registrations.Add($"            services.AddScoped<ServiceContracts.Features.{ns}.I{s.Prefix}SelectListDataService, Features.{ns}.{s.Prefix}SelectListClientDataService>();");
         }
 
         return registrations;
@@ -157,27 +164,17 @@ public class RegistrationManagementService
                 return;
             }
 
-            // Build the replacement text: new registrations + placeholder for next time
-            var replacementText = string.Join(Environment.NewLine, newRegistrations) + Environment.NewLine +
-                                 Environment.NewLine + "            " + placeholder;
-
-            // Find the placeholder with its current indentation and replace it
             var lines = content.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
             for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i].Trim() == placeholder)
                 {
-                    // Get the current indentation
                     var indentation = lines[i].Substring(0, lines[i].IndexOf(placeholder));
-
-                    // Replace with new registrations maintaining indentation
                     var indentedReplacements = newRegistrations.Select(reg =>
                         reg.StartsWith("            ") ? reg : indentation + reg.TrimStart()).ToList();
 
-                    // Build the final replacement with proper indentation
                     var finalReplacement = string.Join(Environment.NewLine, indentedReplacements) +
                                          Environment.NewLine + Environment.NewLine + indentation + placeholder;
-
                     lines[i] = finalReplacement;
                     break;
                 }
@@ -185,9 +182,7 @@ public class RegistrationManagementService
 
             var updatedContent = string.Join(Environment.NewLine, lines);
             await File.WriteAllTextAsync(filePath, updatedContent);
-
-            _logger.LogInformation("Updated registration file: {FilePath} with {Count} registrations",
-                filePath, newRegistrations.Count);
+            _logger.LogInformation("Updated registration file: {FilePath} with {Count} registrations", filePath, newRegistrations.Count);
         }
         catch (Exception ex)
         {

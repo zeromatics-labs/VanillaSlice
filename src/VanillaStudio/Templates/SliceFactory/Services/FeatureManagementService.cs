@@ -1,3 +1,4 @@
+using {{RootNamespace}}.SliceFactory.Cli;
 using {{RootNamespace}}.SliceFactory.Data;
 using {{RootNamespace}}.SliceFactory.Models;
 using {{RootNamespace}}.SliceFactory.Components.Pages;
@@ -263,7 +264,8 @@ public class FeatureManagementService
                 var featureNode = new FeatureTreeNode
                 {
                     Id = $"feature_{feature.Id}",
-                    Name = feature.ComponentPrefix,
+                    Name = feature.Listing?.Prefix ?? feature.Form?.Prefix
+                        ?? feature.Action?.Prefix ?? feature.SelectList?.Prefix ?? feature.DirectoryName,
                     Type = "Feature",
                     Feature = feature,
                     IsExpanded = false

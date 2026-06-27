@@ -1,4 +1,5 @@
 using System.Text.Json;
+using {{RootNamespace}}.SliceFactory.Services;
 
 namespace {{RootNamespace}}.SliceFactory.Cli;
 

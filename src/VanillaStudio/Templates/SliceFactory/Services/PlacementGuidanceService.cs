@@ -28,7 +28,9 @@ public class PlacementGuidanceService
 
         // Get existing features for conflict analysis
         var existingFeatures = _store.Features
-            .Where(f => f.ModuleNamespace == moduleNamespace || f.ComponentPrefix == componentPrefix)
+            .Where(f => f.ModuleNamespace == moduleNamespace
+                     || f.Listing?.Prefix == componentPrefix || f.Form?.Prefix == componentPrefix
+                     || f.Action?.Prefix == componentPrefix || f.SelectList?.Prefix == componentPrefix)
             .ToList();
 
         // Analyze conflicts
@@ -55,7 +57,7 @@ public class PlacementGuidanceService
     {
         // Check for duplicate feature names
         var duplicateFeature = existingFeatures.FirstOrDefault(f =>
-            f.ComponentPrefix.Equals(componentPrefix, StringComparison.OrdinalIgnoreCase) &&
+            f.DirectoryName.Equals(componentPrefix, StringComparison.OrdinalIgnoreCase) &&
             f.ModuleNamespace.Equals(moduleNamespace, StringComparison.OrdinalIgnoreCase));
 
         if (duplicateFeature != null)
@@ -148,8 +150,9 @@ public class PlacementGuidanceService
             {
                 var featureNode = new NamespaceNode
                 {
-                    Name = feature.ComponentPrefix,
-                    FullPath = $"{feature.ModuleNamespace}.{feature.ComponentPrefix}",
+                    Name = feature.Listing?.Prefix ?? feature.Form?.Prefix
+                        ?? feature.Action?.Prefix ?? feature.SelectList?.Prefix ?? feature.DirectoryName,
+                    FullPath = $"{feature.ModuleNamespace}.{feature.DirectoryName}",
                     Type = NodeType.Feature,
                     ExistingFeatureCount = 1
                 };
@@ -264,7 +267,7 @@ public class PlacementGuidanceService
     private List<string> GenerateAlternativeNames(string originalName, List<Feature> existingFeatures)
     {
         var alternatives = new List<string>();
-        var existingNames = existingFeatures.Select(f => f.ComponentPrefix.ToLower()).ToHashSet();
+        var existingNames = existingFeatures.Select(f => f.DirectoryName.ToLower()).ToHashSet();
 
         // Generate numbered alternatives
         for (int i = 2; i <= 5; i++)

@@ -73,7 +73,7 @@
                                 @if (SelectedFeature != null)
                                 {
                                     <div class="feature-details">
-                                        <h6 class="text-primary mb-3">@SelectedFeature.ComponentPrefix</h6>
+                                        <h6 class="text-primary mb-3">@(SelectedFeature.Listing?.Name ?? SelectedFeature.Form?.Name ?? SelectedFeature.Action?.Name ?? SelectedFeature.SelectList?.Name ?? SelectedFeature.DirectoryName)</h6>
                                         
                                         <div class="detail-group mb-3">
                                             <label class="form-label fw-semibold">Module Namespace</label>
@@ -103,13 +103,21 @@
                                         <div class="detail-group mb-3">
                                             <label class="form-label fw-semibold">Generated Components</label>
                                             <div class="d-flex gap-2">
-                                                @if (SelectedFeature.HasForm)
+                                                @if (SelectedFeature.Listing is not null)
+                                                {
+                                                    <span class="badge bg-info">Listing</span>
+                                                }
+                                                @if (SelectedFeature.Form is not null)
                                                 {
                                                     <span class="badge bg-success">Form</span>
                                                 }
-                                                @if (SelectedFeature.HasListing)
+                                                @if (SelectedFeature.Action is not null)
                                                 {
-                                                    <span class="badge bg-info">Listing</span>
+                                                    <span class="badge bg-warning text-dark">Action</span>
+                                                }
+                                                @if (SelectedFeature.SelectList is not null)
+                                                {
+                                                    <span class="badge bg-secondary">SelectList</span>
                                                 }
                                             </div>
                                         </div>
@@ -221,7 +229,7 @@
                     <button type="button" class="btn-close" @onclick="CancelDelete"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the feature <strong>@FeatureToDelete.ComponentPrefix</strong>?</p>
+                    <p>Are you sure you want to delete the feature <strong>@(FeatureToDelete.Listing?.Name ?? FeatureToDelete.Form?.Name ?? FeatureToDelete.Action?.Name ?? FeatureToDelete.SelectList?.Name ?? FeatureToDelete.DirectoryName)</strong>?</p>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" @bind="DeleteFiles" id="deleteFiles">
                         <label class="form-check-label" for="deleteFiles">
@@ -310,7 +318,7 @@
     {
         // Navigate to edit mode - could be implemented as a modal or separate page
         // For now, navigate back to main page with feature data
-        await JSRuntime.InvokeVoidAsync("alert", $"Edit feature: {feature.ComponentPrefix}");
+        await JSRuntime.InvokeVoidAsync("alert", $"Edit feature: {feature.DirectoryName}");
     }
 
     private async Task OnFeatureDelete(Feature feature)
@@ -430,7 +438,7 @@
                 {
                     context.ModuleNamespace = node.Feature.ModuleNamespace;
                     context.ProjectNamespace = node.Feature.ProjectNamespace;
-                    context.SuggestedPrefix = GenerateSiblingPrefix(node.Feature.ComponentPrefix);
+                    context.SuggestedPrefix = GenerateSiblingPrefix(node.Feature.DirectoryName);
                     // BasePath is now automatically detected
                 }
                 break;
@@ -442,7 +450,7 @@
                 {
                     context.ModuleNamespace = parentFeature.ModuleNamespace;
                     context.ProjectNamespace = parentFeature.ProjectNamespace;
-                    context.SuggestedPrefix = GenerateSiblingPrefix(parentFeature.ComponentPrefix);
+                    context.SuggestedPrefix = GenerateSiblingPrefix(parentFeature.DirectoryName);
                     // BasePath is now automatically detected
                 }
                 break;

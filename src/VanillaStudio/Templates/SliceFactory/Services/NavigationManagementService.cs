@@ -25,14 +25,15 @@ public class NavigationManagementService
     /// </summary>
     public async Task UpdateNavigationForFeatureAsync(Feature feature, List<Project> projects)
     {
+        var label = feature.Listing?.Prefix ?? feature.DirectoryName;
         try
         {
-            _logger.LogInformation("Updating navigation menus for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogInformation("Updating navigation menus for feature: {Label}", label);
 
             // Only add navigation items for features that have listings
-            if (!feature.HasListing)
+            if (feature.Listing is null)
             {
-                _logger.LogInformation("Feature {ComponentPrefix} has no listing, skipping navigation update", feature.ComponentPrefix);
+                _logger.LogInformation("Feature {Label} has no listing, skipping navigation update", label);
                 return;
             }
 
@@ -48,11 +49,11 @@ public class NavigationManagementService
             await UpdateWebPortalNavigationAsync(feature);
             await UpdateHybridAppNavigationAsync(feature);
 
-            _logger.LogInformation("Successfully updated navigation menus for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogInformation("Successfully updated navigation menus for feature: {Label}", label);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update navigation menus for feature: {ComponentPrefix}", feature.ComponentPrefix);
+            _logger.LogError(ex, "Failed to update navigation menus for feature: {Label}", label);
             throw;
         }
     }
@@ -62,7 +63,8 @@ public class NavigationManagementService
     /// </summary>
     public async Task RemoveNavigationForFeatureAsync(Feature feature, List<Project> projects)
     {
-        _logger.LogWarning("Navigation removal not supported with placeholder-based approach for feature: {ComponentPrefix}", feature.ComponentPrefix);
+        var label = feature.Listing?.Prefix ?? feature.DirectoryName;
+        _logger.LogWarning("Navigation removal not supported with placeholder-based approach for feature: {Label}", label);
         // Note: With placeholder approach, we don't remove navigation items automatically
         // This would require manual cleanup or a more sophisticated approach
         await Task.CompletedTask;
@@ -78,7 +80,7 @@ public class NavigationManagementService
         }
 
         var navigationItems = GenerateNavigationItems(feature);
-        await UpdateNavigationFileWithPlaceholderAsync(navMenuPath, navigationItems, feature.ComponentPrefix);
+        await UpdateNavigationFileWithPlaceholderAsync(navMenuPath, navigationItems, feature.Listing!.Prefix);
     }
 
     private string GetNavMenuFilePath(Project project, string basePath)
@@ -97,8 +99,10 @@ public class NavigationManagementService
 
     private string GenerateNavigationItems(Feature feature)
     {
-        var pluralizedRoute = _pluralizationService.Pluralize(feature.ComponentPrefix).ToLowerInvariant();
-        var displayName = feature.ComponentPrefix; // Keep singular for display
+        // listing.Name IS already the plural display name (e.g. "Doctors")
+        var listing = feature.Listing!;
+        var pluralizedRoute = listing.Name.ToLowerInvariant();
+        var displayName = listing.Prefix; // singular PascalCase prefix for label
 
         return $@"        
         {{#if (eq UIFramework "Bootstrap")}}
@@ -154,7 +158,7 @@ public class NavigationManagementService
         if (File.Exists(webPortalNavMenuPath))
         {
             var navigationItems = GenerateNavigationItems(feature);
-            await UpdateNavigationFileWithPlaceholderAsync(webPortalNavMenuPath, navigationItems, feature.ComponentPrefix);
+            await UpdateNavigationFileWithPlaceholderAsync(webPortalNavMenuPath, navigationItems, feature.Listing!.Prefix);
         }
         else
         {
@@ -173,7 +177,7 @@ public class NavigationManagementService
         if (File.Exists(hybridAppNavMenuPath))
         {
             var navigationItems = GenerateNavigationItems(feature);
-            await UpdateNavigationFileWithPlaceholderAsync(hybridAppNavMenuPath, navigationItems, feature.ComponentPrefix);
+            await UpdateNavigationFileWithPlaceholderAsync(hybridAppNavMenuPath, navigationItems, feature.Listing!.Prefix);
         }
         else
         {

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using {{RootNamespace}}.SliceFactory.Components.Pages;
+using {{RootNamespace}}.SliceFactory.Models;
 using {{RootNamespace}}.SliceFactory.Services;
 
 namespace {{RootNamespace}}.SliceFactory.Cli;
@@ -186,30 +187,79 @@ public class CliRunner
         Console.WriteLine($"  Directory: {slice.Directory}");
         Console.WriteLine();
 
-        // Build CliOptions from v2 SliceDefinition (descriptors already have names+prefixes)
-        var regenerateOptions = new CliOptions
+        var profile = _codeConfig.Profiles.FirstOrDefault();
+        if (profile?.Projects == null)
         {
-            Command           = CliCommand.Generate,
-            ListingName       = slice.Listing?.Name,
-            FormName          = slice.Form?.Name,
-            ActionName        = slice.Action?.Name,
-            SelectListName    = slice.SelectList?.Name,
-            SelectListModelType = slice.SelectList?.ModelType ?? "SelectOption",
-            SelectListDataType  = slice.SelectList?.DataType ?? "string",
-            Namespace         = slice.Namespace,
-            DirectoryName     = slice.Directory,
-            PrimaryKeyType    = slice.PrimaryKeyType,
-            Preview           = options.Preview
-        };
+            Console.WriteLine("Error: No profile configuration found in webportal-profile.json");
+            return 1;
+        }
 
         try
         {
-            return await GenerateAsync(regenerateOptions);
-        }
-        catch (InvalidOperationException)
-        {
-            Console.WriteLine("Note: Feature already exists in database. Files have been updated.");
+            // Find the existing Feature in the store by namespace + directory
+            var featuresInModule = await _featureService.GetFeaturesByModuleAsync(slice.Namespace);
+            var existingFeature = featuresInModule.FirstOrDefault(f =>
+                string.Equals(f.DirectoryName, slice.Directory, StringComparison.OrdinalIgnoreCase));
+
+            Feature? feature;
+            if (existingFeature != null)
+            {
+                Console.WriteLine("Updating existing feature files...");
+                existingFeature.BasePath = _basePath; // not persisted in JSON; must be re-injected before UpdateFeatureAsync
+                feature = await _featureService.UpdateFeatureAsync(
+                    featureId: existingFeature.Id,
+                    listing: slice.Listing,
+                    form: slice.Form,
+                    action: slice.Action,
+                    selectList: slice.SelectList,
+                    projects: profile.Projects.ToList(),
+                    profileConfiguration: JsonSerializer.Serialize(profile));
+            }
+            else
+            {
+                // Feature not in store yet — create it fresh
+                Console.WriteLine("Generating files...");
+                var projectNs = $"{profile.Projects.FirstOrDefault()?.NameSpace}.{slice.Namespace}";
+                feature = await _featureService.CreateFeatureAsync(
+                    listing: slice.Listing,
+                    form: slice.Form,
+                    action: slice.Action,
+                    selectList: slice.SelectList,
+                    moduleNamespace: slice.Namespace,
+                    projectNamespace: projectNs,
+                    primaryKeyType: slice.PrimaryKeyType,
+                    basePath: _basePath,
+                    directoryName: slice.Directory,
+                    projects: profile.Projects.ToList(),
+                    profileConfiguration: JsonSerializer.Serialize(profile),
+                    uiFramework: profile.UIFramework ?? "TailwindCSS");
+            }
+
+            if (feature == null)
+            {
+                Console.WriteLine("Error: Failed to update feature.");
+                return 1;
+            }
+
+            var generatedFiles = feature.Files.Select(f => f.FilePath).ToList();
+            slice.GeneratedFiles = generatedFiles;
+            await _manifestService.AddOrUpdateSliceAsync(slice, generatedFiles);
+
+            Console.WriteLine();
+            Console.WriteLine($"Successfully regenerated {generatedFiles.Count} files!");
+            Console.WriteLine();
+            Console.WriteLine("Generated files:");
+            foreach (var file in generatedFiles)
+                Console.WriteLine($"  {Path.GetRelativePath(_basePath, file)}");
+
+            Console.WriteLine();
+            Console.WriteLine($"Manifest updated: {_manifestService.ManifestPath}");
             return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error regenerating slice: {ex.Message}");
+            return 1;
         }
     }
 
