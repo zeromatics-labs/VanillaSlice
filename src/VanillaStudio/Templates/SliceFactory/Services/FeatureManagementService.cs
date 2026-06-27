@@ -106,47 +106,28 @@ public class FeatureManagementService
     }
 
     /// <summary>
-    /// Update an existing feature and regenerate files if needed
+    /// Update an existing feature and regenerate its files
     /// </summary>
-    public async Task<Feature> UpdateFeatureAsync(
+    public async Task<Feature?> UpdateFeatureAsync(
         string featureId,
-        string componentPrefix,
-        string featurePluralName,
-        string moduleNamespace,
-        string projectNamespace,
-        string primaryKeyType,
-        string basePath,
-        string directoryName,
-        bool hasForm,
-        bool hasListing,
+        SliceDescriptor? listing,
+        SliceDescriptor? form,
+        SliceDescriptor? action,
+        SelectListDescriptor? selectList,
         List<Project> projects,
-        bool regenerateFiles = false)
+        string? profileConfiguration = null)
     {
-        var feature = await GetFeatureByIdAsync(featureId);
-        if (feature == null)
-        {
-            throw new ArgumentException($"Feature with ID {featureId} not found");
-        }
+        var feature = _store.Features.FirstOrDefault(f => f.Id == featureId);
+        if (feature == null) return null;
 
-        // Update feature properties
-        feature.ComponentPrefix = componentPrefix;
-        feature.FeaturePluralName = featurePluralName;
-        feature.ModuleNamespace = moduleNamespace;
-        feature.ProjectNamespace = projectNamespace;
-        feature.PrimaryKeyType = primaryKeyType;
-        feature.BasePath = basePath;
-        feature.DirectoryName = directoryName;
-        feature.HasForm = hasForm;
-        feature.HasListing = hasListing;
+        feature.Listing   = listing;
+        feature.Form      = form;
+        feature.Action    = action;
+        feature.SelectList = selectList;
+        feature.ProfileConfiguration = profileConfiguration;
         feature.UpdatedAt = DateTime.UtcNow;
 
-        if (regenerateFiles)
-        {
-            feature.Files.Clear();
-            feature.Projects.Clear();
-            await GenerateFeatureFilesAsync(feature, projects);
-        }
-
+        await GenerateFeatureFilesAsync(feature, projects);
         await _store.SaveAsync();
         return feature;
     }
@@ -229,7 +210,7 @@ public class FeatureManagementService
 
             if (listing is not null)
                 await AddPreviews("Listing",
-                    Path.Combine(baseFeaturePath, $"{listing.Name}Listing"),
+                    Path.Combine(baseFeaturePath, $"{listing.Prefix}Listing"),
                     _templateEngine.CreateParameterDictionary(listing.Prefix, moduleNamespace,
                         projectNamespace, primaryKeyType, componentPrefixPlural: listing.Name));
 
@@ -247,7 +228,7 @@ public class FeatureManagementService
 
             if (selectList is not null)
                 await AddPreviews("SelectList",
-                    Path.Combine(baseFeaturePath, $"{selectList.Name}SelectList"),
+                    Path.Combine(baseFeaturePath, $"{selectList.Prefix}SelectList"),
                     _templateEngine.CreateParameterDictionary(selectList.Prefix, moduleNamespace,
                         projectNamespace, primaryKeyType, selectListModelType: selectList.ModelType,
                         selectListDataType: selectList.DataType));
@@ -345,7 +326,7 @@ public class FeatureManagementService
                     listing.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
                     feature.PrimaryKeyType, feature.UIFramework,
                     componentPrefixPlural: listing.Name);  // listing name IS the plural
-                var path = Path.Combine(baseFeaturePath, $"{listing.Name}Listing");
+                var path = Path.Combine(baseFeaturePath, $"{listing.Prefix}Listing");
                 await GenerateSliceFilesAsync(feature, templateDir, "Listing", path, p);
             }
 
@@ -373,7 +354,7 @@ public class FeatureManagementService
                     selectList.Prefix, feature.ModuleNamespace, feature.ProjectNamespace,
                     feature.PrimaryKeyType, feature.UIFramework,
                     selectList.ModelType, selectList.DataType);
-                var path = Path.Combine(baseFeaturePath, $"{selectList.Name}SelectList");
+                var path = Path.Combine(baseFeaturePath, $"{selectList.Prefix}SelectList");
                 await GenerateSliceFilesAsync(feature, templateDir, "SelectList", path, p);
             }
         }

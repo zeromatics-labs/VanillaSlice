@@ -179,7 +179,9 @@ public partial class Index
                 primaryKeyType: M.PkType ?? "Guid",
                 basePath: basePath,
                 directoryName: M.DirectoryName ?? "",
-                projects: profile.Projects.ToList()
+                projects: profile.Projects.ToList(),
+                uiFramework: profile.UIFramework ?? "Bootstrap",
+                profileConfiguration: System.Text.Json.JsonSerializer.Serialize(profile)
             );
 
             // Show success message (auto-hides after 5 s)

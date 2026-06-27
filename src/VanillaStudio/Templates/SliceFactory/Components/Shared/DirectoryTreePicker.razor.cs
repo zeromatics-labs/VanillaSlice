@@ -12,10 +12,15 @@ public partial class DirectoryTreePicker
     private string? _selectedPath;
     private string _newFolderName = "";
     private bool _showNewFolderInput = false;
+    private IReadOnlyList<string>? _lastKnownPaths;
 
     protected override void OnParametersSet()
     {
-        _roots = BuildTree(KnownPaths);
+        if (!ReferenceEquals(KnownPaths, _lastKnownPaths))
+        {
+            _roots = BuildTree(KnownPaths);
+            _lastKnownPaths = KnownPaths;
+        }
         _selectedPath = Value;
     }
 
