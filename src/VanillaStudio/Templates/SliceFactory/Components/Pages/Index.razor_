@@ -56,7 +56,7 @@
                                     <DirectoryTreePicker
                                         KnownPaths="_directoryPaths"
                                         Value="@M.DirectoryName"
-                                        OnPathSelected="@(path => { M.DirectoryName = path; TriggerDebouncedPreview(); })" />
+                                        OnPathSelected="@(async path => { M.DirectoryName = path; await TriggerDebouncedPreview(); })" />
                                     @if (!string.IsNullOrEmpty(M.DirectoryName))
                                     {
                                         <input type="hidden" @bind="M.DirectoryName" />
@@ -96,7 +96,7 @@
                                 @if (M.EnableListing)
                                 {
                                     <input class="form-control form-control-sm" placeholder='e.g. "Doctors"'
-                                           @bind="M.ListingName" @oninput="TriggerDebouncedPreview" />
+                                           value="@M.ListingName" @oninput="@(async e => { M.ListingName = e.Value?.ToString(); await TriggerDebouncedPreview(); })" />
                                 }
                             </div>
 
@@ -108,7 +108,7 @@
                                 @if (M.EnableForm)
                                 {
                                     <input class="form-control form-control-sm" placeholder='e.g. "Doctor Profile"'
-                                           @bind="M.FormName" @oninput="TriggerDebouncedPreview" />
+                                           value="@M.FormName" @oninput="@(async e => { M.FormName = e.Value?.ToString(); await TriggerDebouncedPreview(); })" />
                                 }
                             </div>
 
@@ -120,7 +120,7 @@
                                 @if (M.EnableAction)
                                 {
                                     <input class="form-control form-control-sm" placeholder='e.g. "Disable Doctor"'
-                                           @bind="M.ActionName" @oninput="TriggerDebouncedPreview" />
+                                           value="@M.ActionName" @oninput="@(async e => { M.ActionName = e.Value?.ToString(); await TriggerDebouncedPreview(); })" />
                                 }
                             </div>
 
@@ -132,7 +132,7 @@
                                 @if (M.EnableSelectList)
                                 {
                                     <input class="form-control form-control-sm" placeholder='e.g. "Doctor Types"'
-                                           @bind="M.SelectListName" @oninput="TriggerDebouncedPreview" />
+                                           value="@M.SelectListName" @oninput="@(async e => { M.SelectListName = e.Value?.ToString(); await TriggerDebouncedPreview(); })" />
                                 }
                             </div>
                         </div>
@@ -200,7 +200,7 @@
                 <div class="sf-preview-body">
                     @if (ActivePreviewTab == "files" || PreviewFiles == null || !PreviewFiles.Any())
                     {
-                        <FilePreview PreviewFiles="@PreviewFiles" IsLoading="@IsPreviewLoading" OnPick="@HandlePicker" />
+                        <FilePreview PreviewFiles="@PreviewFiles" IsLoading="@IsPreviewLoading" />
                     }
                     else
                     {
