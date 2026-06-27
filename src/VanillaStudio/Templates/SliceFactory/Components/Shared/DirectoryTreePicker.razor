@@ -1,0 +1,76 @@
+@namespace {{RootNamespace}}.SliceFactory.Components.Shared
+
+<div class="directory-tree-picker">
+    @if (_roots.Count == 0)
+    {
+        <p class="text-muted small">No existing directories. Type a path directly or generate your first slice.</p>
+    }
+    else
+    {
+        <ul class="tree-root list-unstyled mb-0">
+            @foreach (var node in _roots)
+            {
+                @RenderNode(node)
+            }
+        </ul>
+    }
+
+    @if (!string.IsNullOrEmpty(_selectedPath))
+    {
+        <div class="mt-2 text-muted small">
+            Selected: <code>@_selectedPath</code>
+        </div>
+    }
+</div>
+
+@code {
+    private RenderFragment RenderNode(DirectoryNode node) => __builder =>
+    {
+        <li class="tree-node">
+            <div class="tree-node-row @(_selectedPath == node.FullPath ? "selected" : "")">
+                <span class="tree-toggle" @onclick="() => ToggleExpand(node)">
+                    @if (node.Children.Count > 0 || _selectedPath == node.FullPath)
+                    {
+                        @(node.IsExpanded ? "▾" : "▸")
+                    }
+                    else
+                    {
+                        <span style="width:1em;display:inline-block;"></span>
+                    }
+                </span>
+                <span class="tree-label" @onclick="() => SelectNode(node)">
+                    📁 @node.Name
+                </span>
+            </div>
+
+            @if (node.IsExpanded || _selectedPath == node.FullPath)
+            {
+                <ul class="list-unstyled ms-3">
+                    @foreach (var child in node.Children)
+                    {
+                        @RenderNode(child)
+                    }
+
+                    @* New folder input appears inside the selected node only *@
+                    @if (_selectedPath == node.FullPath && _showNewFolderInput)
+                    {
+                        <li class="tree-node tree-new-folder">
+                            <span>📁 </span>
+                            <input class="form-control form-control-sm d-inline-block w-auto"
+                                   @bind="_newFolderName"
+                                   @onkeydown="HandleNewFolderKey"
+                                   placeholder="new folder name"
+                                   autofocus />
+                        </li>
+                    }
+                </ul>
+            }
+        </li>
+    };
+
+    private async Task HandleNewFolderKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await ConfirmNewFolder();
+        if (e.Key == "Escape") CancelNewFolder();
+    }
+}
