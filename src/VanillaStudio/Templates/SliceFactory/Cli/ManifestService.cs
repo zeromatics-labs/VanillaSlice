@@ -32,14 +32,31 @@ public class ManifestService
     public async Task<SliceManifest> LoadAsync()
     {
         if (!File.Exists(_manifestPath))
-        {
             return new SliceManifest();
-        }
 
         try
         {
             var json = await File.ReadAllTextAsync(_manifestPath);
-            return JsonSerializer.Deserialize<SliceManifest>(json, JsonOptions) ?? new SliceManifest();
+
+            // Detect v1 by parsing the "version" field value
+            using var probe = JsonDocument.Parse(json);
+            var versionToken = probe.RootElement.TryGetProperty("version", out var vEl) ? vEl : default;
+            bool isV1 = versionToken.ValueKind == JsonValueKind.String
+                        || (versionToken.ValueKind == JsonValueKind.Number && versionToken.GetInt32() < 2);
+
+            if (isV1)
+            {
+                var migrated = MigrateV1(probe.RootElement);
+                // Back up v1 before overwriting
+                var backupPath = _manifestPath.Replace(".json", ".v1.json");
+                if (!File.Exists(backupPath))
+                    await File.WriteAllTextAsync(backupPath, json);
+                await SaveAsync(migrated);
+                return migrated;
+            }
+
+            return JsonSerializer.Deserialize<SliceManifest>(json, JsonOptions)
+                   ?? new SliceManifest();
         }
         catch (Exception ex)
         {
@@ -59,6 +76,54 @@ public class ManifestService
     }
 
     /// <summary>
+    /// Migrate a v1 manifest to v2 format
+    /// </summary>
+    private static SliceManifest MigrateV1(JsonElement root)
+    {
+        var manifest = new SliceManifest { Version = 2 };
+
+        if (!root.TryGetProperty("slices", out var slicesEl))
+            return manifest;
+
+        foreach (var el in slicesEl.EnumerateArray())
+        {
+            var prefix    = el.TryGetProperty("componentPrefix", out var p) ? p.GetString() ?? "" : "";
+            var plural    = el.TryGetProperty("featurePluralName", out var pl) ? pl.GetString() ?? prefix + "s" : prefix + "s";
+            var ns        = el.TryGetProperty("namespace", out var ns_) ? ns_.GetString() ?? "" : "";
+            var dir       = el.TryGetProperty("directoryName", out var d) ? d.GetString() ?? "" : "";
+            var pk        = el.TryGetProperty("primaryKeyType", out var pk_) ? pk_.GetString() ?? "Guid" : "Guid";
+            var hasList   = el.TryGetProperty("generateListing", out var gl) && gl.GetBoolean();
+            var hasForm   = el.TryGetProperty("generateForm", out var gf) && gf.GetBoolean();
+            var hasSel    = el.TryGetProperty("generateSelectList", out var gs) && gs.GetBoolean();
+            var modelType = el.TryGetProperty("selectListModelType", out var mt) ? mt.GetString() ?? "SelectOption" : "SelectOption";
+            var dataType  = el.TryGetProperty("selectListDataType", out var dt) ? dt.GetString() ?? "string" : "string";
+            var createdAt = el.TryGetProperty("createdAt", out var ca) ? ca.GetDateTime() : DateTime.UtcNow;
+            var lastGen   = el.TryGetProperty("lastGeneratedAt", out var lg) ? lg.GetDateTime() : DateTime.UtcNow;
+            var files     = el.TryGetProperty("generatedFiles", out var gf2)
+                            ? gf2.EnumerateArray().Select(f => f.GetString() ?? "").ToList()
+                            : new List<string>();
+
+            var slice = new SliceDefinition
+            {
+                Id            = SliceDefinition.GenerateId(ns, dir),
+                Namespace     = ns,
+                Directory     = dir,
+                PrimaryKeyType = pk,
+                Listing       = hasList  ? new SliceDescriptor(plural, prefix) : null,
+                Form          = hasForm  ? new SliceDescriptor(prefix, prefix) : null,
+                SelectList    = hasSel   ? new SelectListDescriptor(prefix + " Types", prefix, modelType, dataType) : null,
+                CreatedAt     = createdAt,
+                LastGeneratedAt = lastGen,
+                GeneratedFiles = files
+            };
+
+            manifest.Slices.Add(slice);
+        }
+
+        return manifest;
+    }
+
+    /// <summary>
     /// Add or update a slice in the manifest
     /// </summary>
     public async Task<SliceDefinition> AddOrUpdateSliceAsync(SliceDefinition slice, List<string>? generatedFiles = null)
@@ -68,7 +133,7 @@ public class ManifestService
         // Generate ID if not set
         if (string.IsNullOrEmpty(slice.Id))
         {
-            slice.Id = SliceDefinition.GenerateId(slice.Namespace, slice.ComponentPrefix);
+            slice.Id = SliceDefinition.GenerateId(slice.Namespace, slice.Directory);
         }
 
         // Find existing slice or add new
