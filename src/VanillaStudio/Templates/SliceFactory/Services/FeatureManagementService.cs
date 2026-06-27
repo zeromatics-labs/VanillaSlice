@@ -126,6 +126,8 @@ public class FeatureManagementService
         feature.SelectList = selectList;
         feature.ProfileConfiguration = profileConfiguration;
         feature.UpdatedAt = DateTime.UtcNow;
+        feature.Files.Clear();
+        feature.Projects.Clear();
 
         await GenerateFeatureFilesAsync(feature, projects);
         await _store.SaveAsync();
