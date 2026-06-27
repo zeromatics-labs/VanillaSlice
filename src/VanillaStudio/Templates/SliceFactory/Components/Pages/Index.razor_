@@ -1,6 +1,7 @@
 @page "/"
 @using {{RootNamespace}}.SliceFactory.Services
 @using {{RootNamespace}}.SliceFactory.Models
+@using {{RootNamespace}}.SliceFactory.Components.Shared
 
 <div class="sf-page">
 
@@ -51,12 +52,15 @@
 
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="sf-label">Directory Name <span class="sf-required">*</span></label>
-                                    <input class="form-control sf-input"
-                                           value="@M.DirectoryName"
-                                           @oninput="@(async e => { M.DirectoryName = e.Value?.ToString() ?? ""; AutoDeriveFromDirectoryName(); await TriggerDebouncedPreview(); })"
-                                           placeholder="Profile\Article" />
-                                    <div class="sf-hint">Relative path within the project (e.g., Profile\Article)</div>
+                                    <label class="sf-label">Directory <span class="sf-required">*</span></label>
+                                    <DirectoryTreePicker
+                                        KnownPaths="_directoryPaths"
+                                        Value="@M.DirectoryName"
+                                        OnPathSelected="@(path => { M.DirectoryName = path; TriggerDebouncedPreview(); })" />
+                                    @if (!string.IsNullOrEmpty(M.DirectoryName))
+                                    {
+                                        <input type="hidden" @bind="M.DirectoryName" />
+                                    }
                                 </div>
 
                                 <div class="col-md-6">
@@ -84,85 +88,53 @@
                                 <i class="bi bi-puzzle me-1"></i>Slice Types
                             </div>
 
-                            <div class="sf-slice-toggles">
-                                <label class="sf-toggle @(M.GenerateForm ? "sf-toggle-active" : "")">
-                                    <input type="checkbox"
-                                           class="visually-hidden"
-                                           checked="@M.GenerateForm"
-                                           @onchange="@(async e => { M.GenerateForm = (bool)(e.Value ?? false); await TriggerDebouncedPreview(); })" />
-                                    <i class="bi bi-card-text sf-toggle-icon"></i>
-                                    <div>
-                                        <div class="sf-toggle-name">Form</div>
-                                        <div class="sf-toggle-desc">Create/Edit form</div>
-                                    </div>
-                                    @if (M.GenerateForm)
-                                    {
-                                        <i class="bi bi-check-circle-fill sf-toggle-check ms-auto"></i>
-                                    }
-                                </label>
-
-                                <label class="sf-toggle @(M.GenerateListing ? "sf-toggle-active" : "")">
-                                    <input type="checkbox"
-                                           class="visually-hidden"
-                                           checked="@M.GenerateListing"
-                                           @onchange="@(async e => { M.GenerateListing = (bool)(e.Value ?? false); await TriggerDebouncedPreview(); })" />
-                                    <i class="bi bi-list-ul sf-toggle-icon"></i>
-                                    <div>
-                                        <div class="sf-toggle-name">Listing</div>
-                                        <div class="sf-toggle-desc">Data grid &amp; filter</div>
-                                    </div>
-                                    @if (M.GenerateListing)
-                                    {
-                                        <i class="bi bi-check-circle-fill sf-toggle-check ms-auto"></i>
-                                    }
-                                </label>
-
-                                <label class="sf-toggle @(M.GenerateSelectList ? "sf-toggle-active" : "")">
-                                    <input type="checkbox"
-                                           class="visually-hidden"
-                                           checked="@M.GenerateSelectList"
-                                           @onchange="@(async e => { M.GenerateSelectList = (bool)(e.Value ?? false); await TriggerDebouncedPreview(); })" />
-                                    <i class="bi bi-ui-checks sf-toggle-icon"></i>
-                                    <div>
-                                        <div class="sf-toggle-name">SelectList</div>
-                                        <div class="sf-toggle-desc">Dropdown data source</div>
-                                    </div>
-                                    @if (M.GenerateSelectList)
-                                    {
-                                        <i class="bi bi-check-circle-fill sf-toggle-check ms-auto"></i>
-                                    }
-                                </label>
+                            <div class="mb-3">
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" @bind="M.EnableListing" id="chkListing" />
+                                    <label class="form-check-label" for="chkListing">Listing</label>
+                                </div>
+                                @if (M.EnableListing)
+                                {
+                                    <input class="form-control form-control-sm" placeholder='e.g. "Doctors"'
+                                           @bind="M.ListingName" @oninput="TriggerDebouncedPreview" />
+                                }
                             </div>
 
-                            @if (M.GenerateSelectList)
-                            {
-                                <div class="sf-selectlist-config mt-3">
-                                    <div class="sf-section-label mb-2">
-                                        <i class="bi bi-gear me-1"></i>SelectList Options
-                                    </div>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="sf-label">Model Type</label>
-                                            <select class="form-select sf-input"
-                                                    value="@M.SelectListModelType"
-                                                    @onchange="@(async e => { M.SelectListModelType = e.Value?.ToString() ?? "SelectOption"; await TriggerDebouncedPreview(); })">
-                                                <option value="SelectOption">SelectOption&lt;T&gt;</option>
-                                                <option value="Custom">Custom Model</option>
-                                            </select>
-                                        </div>
-                                        @if (M.SelectListModelType == "SelectOption")
-                                        {
-                                            <div class="col-md-6">
-                                                <label class="sf-label">Data Type</label>
-                                                <input class="form-control sf-input"
-                                                       value="@M.SelectListDataType"
-                                                       @oninput="@(async e => { M.SelectListDataType = e.Value?.ToString() ?? "string"; await TriggerDebouncedPreview(); })"
-                                                       placeholder="string" />
-                                            </div>
-                                        }
-                                    </div>
+                            <div class="mb-3">
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" @bind="M.EnableForm" id="chkForm" />
+                                    <label class="form-check-label" for="chkForm">Form</label>
                                 </div>
-                            }
+                                @if (M.EnableForm)
+                                {
+                                    <input class="form-control form-control-sm" placeholder='e.g. "Doctor Profile"'
+                                           @bind="M.FormName" @oninput="TriggerDebouncedPreview" />
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" @bind="M.EnableAction" id="chkAction" />
+                                    <label class="form-check-label" for="chkAction">Action</label>
+                                </div>
+                                @if (M.EnableAction)
+                                {
+                                    <input class="form-control form-control-sm" placeholder='e.g. "Disable Doctor"'
+                                           @bind="M.ActionName" @oninput="TriggerDebouncedPreview" />
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" @bind="M.EnableSelectList" id="chkSelect" />
+                                    <label class="form-check-label" for="chkSelect">Select List</label>
+                                </div>
+                                @if (M.EnableSelectList)
+                                {
+                                    <input class="form-control form-control-sm" placeholder='e.g. "Doctor Types"'
+                                           @bind="M.SelectListName" @oninput="TriggerDebouncedPreview" />
+                                }
+                            </div>
                         </div>
 
                         <!-- Generate Button -->

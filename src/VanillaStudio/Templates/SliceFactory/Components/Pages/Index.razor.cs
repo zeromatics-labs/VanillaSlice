@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using {{RootNamespace}}.SliceFactory.Cli;
 using {{RootNamespace}}.SliceFactory.Services;
 using {{RootNamespace}}.SliceFactory.Models;
 
@@ -14,6 +15,7 @@ public partial class Index
     [Inject] private PlacementGuidanceService PlacementService { get; set; } = default!;
     [Inject] private PathDetectionService PathDetectionService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ManifestService ManifestService { get; set; } = default!;
 
     private bool HasValidationErrors => !string.IsNullOrEmpty(M.DirectoryName) &&
                                        !string.IsNullOrEmpty(M.NameSpace) &&
@@ -29,12 +31,8 @@ public partial class Index
 
     public FormViewModel M { get; set; } = new FormViewModel()
     {
-        PkType = string.Empty,
-        GenerateForm = true,
-        GenerateListing = true,
-        GenerateSelectList = false,
-        SelectListModelType = "SelectOption",
-        SelectListDataType = "string",
+        EnableForm = true,
+        EnableListing = true,
         GenerateControllerAndClientService = true
     };
 
@@ -43,6 +41,7 @@ public partial class Index
     private bool IsPreviewLoading = false;
     private List<FeatureFilePreview>? PreviewFiles;
     private List<FeatureFilePreview> _existingPreviews = new();
+    private IReadOnlyList<string> _directoryPaths = Array.Empty<string>();
     private CancellationTokenSource? _previewDebounceTokenSource;
 
     // Placement guidance functionality
@@ -66,12 +65,8 @@ public partial class Index
                 var jsonText = File.ReadAllText("temp.local.json");
                 M = JsonSerializer.Deserialize<FormViewModel>(jsonText) ?? new FormViewModel()
                 {
-                    PkType = string.Empty,
-                    GenerateForm = true,
-                    GenerateListing = true,
-                    GenerateSelectList = false,
-                    SelectListModelType = "SelectOption",
-                    SelectListDataType = "string",
+                    EnableForm = true,
+                    EnableListing = true,
                     GenerateControllerAndClientService = true
                 };
             }
@@ -87,6 +82,10 @@ public partial class Index
         var basePath = PathDetectionService.GetFeatureGenerationBasePath();
         _existingPreviews = await FeatureService.GetAllExistingPreviewsAsync(basePath);
         PreviewFiles = _existingPreviews;
+
+        // Load manifest directories for the DirectoryTreePicker.
+        var allSlices = await ManifestService.GetAllSlicesAsync();
+        _directoryPaths = allSlices.Select(s => s.Directory).Distinct().ToList();
 
         // Check for context parameters from feature creation
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
@@ -128,8 +127,6 @@ public partial class Index
                     break;
             }
 
-            AutoDeriveFromDirectoryName();
-
             // Automatically show preview for context-aware creation
             await ShowPreview();
 
@@ -145,36 +142,49 @@ public partial class Index
     {
         await File.WriteAllTextAsync("temp.local.json", JsonSerializer.Serialize(M), System.Text.Encoding.UTF8);
 
-        var wooqlawProfile = CodeCofig.Profiles.FirstOrDefault();
-        if (wooqlawProfile?.Projects == null) return;
+        var profile = CodeCofig?.Profiles.FirstOrDefault();
+        if (profile?.Projects == null) return;
 
         try
         {
             // Automatically detect the base path
-            var detectedBasePath = PathDetectionService.GetFeatureGenerationBasePath();
+            var basePath = PathDetectionService.GetFeatureGenerationBasePath();
+
+            // Build SliceDescriptors from FormViewModel
+            var listing = M.EnableListing && !string.IsNullOrWhiteSpace(M.ListingName)
+                ? new SliceDescriptor(M.ListingName!, NameDerivationService.DerivePrefix(M.ListingName!))
+                : null;
+
+            var form = M.EnableForm && !string.IsNullOrWhiteSpace(M.FormName)
+                ? new SliceDescriptor(M.FormName!, NameDerivationService.DerivePrefix(M.FormName!))
+                : null;
+
+            var action = M.EnableAction && !string.IsNullOrWhiteSpace(M.ActionName)
+                ? new SliceDescriptor(M.ActionName!, NameDerivationService.DerivePrefix(M.ActionName!))
+                : null;
+
+            var selectList = M.EnableSelectList && !string.IsNullOrWhiteSpace(M.SelectListName)
+                ? new SelectListDescriptor(M.SelectListName!, NameDerivationService.DerivePrefix(M.SelectListName!),
+                    M.SelectListModelType, M.SelectListDataType)
+                : null;
 
             // Create feature using the new feature management system
             var feature = await FeatureService.CreateFeatureAsync(
-                componentPrefix: M.ComponentPrefix ?? "",
-                featurePluralName: M.FeaturePluralName ?? "",
+                listing: listing,
+                form: form,
+                action: action,
+                selectList: selectList,
                 moduleNamespace: M.NameSpace ?? "",
-                projectNamespace: $"{wooqlawProfile.Projects.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
-                primaryKeyType: M.PkType ?? "string",
-                basePath: detectedBasePath,
+                projectNamespace: $"{profile.Projects.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
+                primaryKeyType: M.PkType ?? "Guid",
+                basePath: basePath,
                 directoryName: M.DirectoryName ?? "",
-                hasForm: M.GenerateForm,
-                hasListing: M.GenerateListing,
-                hasSelectList: M.GenerateSelectList,
-                selectListModelType: M.SelectListModelType,
-                selectListDataType: M.SelectListDataType,
-                projects: wooqlawProfile.Projects.ToList(),
-                profileConfiguration: JsonSerializer.Serialize(wooqlawProfile),
-                uiFramework: wooqlawProfile.UIFramework ?? "Bootstrap"
+                projects: profile.Projects.ToList()
             );
 
             // Show success message (auto-hides after 5 s)
-            GeneratedFeatureName = M.ComponentPrefix;
-            SuccessMessage = $"Successfully generated {M.ComponentPrefix} slice!";
+            GeneratedFeatureName = listing?.Name ?? form?.Name ?? action?.Name ?? selectList?.Name ?? "Slice";
+            SuccessMessage = $"Successfully generated {GeneratedFeatureName} slice!";
             ShowSuccessMessage = true;
             ShowFilePreview = false;
             StateHasChanged();
@@ -197,12 +207,8 @@ public partial class Index
         // Reset form to initial state
         M = new FormViewModel()
         {
-            PkType = string.Empty,
-            GenerateForm = true,
-            GenerateListing = true,
-            GenerateSelectList = false,
-            SelectListModelType = "SelectOption",
-            SelectListDataType = "string",
+            EnableForm = true,
+            EnableListing = true,
             GenerateControllerAndClientService = true
         };
 
@@ -219,32 +225,6 @@ public partial class Index
     {
         ShowSuccessMessage = false;
         StateHasChanged();
-    }
-
-    private void AutoDeriveFromDirectoryName()
-    {
-        if (string.IsNullOrEmpty(M.DirectoryName)) return;
-        var segments = M.DirectoryName.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length == 0) return;
-        var last = segments[^1];
-        M.ComponentPrefix = last;
-        M.FeaturePluralName = last + "s";
-    }
-
-    public async Task HandlePicker(PickerContext ctx)
-    {
-        M.DirectoryName = ctx.DirectoryName;
-        M.NameSpace = ctx.ModuleNamespace;
-        AutoDeriveFromDirectoryName();
-
-        if (!string.IsNullOrEmpty(ctx.ComponentPrefix))
-        {
-            M.ComponentPrefix = ctx.ComponentPrefix;
-            M.FeaturePluralName = ctx.ComponentPrefix + "s";
-        }
-
-        StateHasChanged();
-        await TriggerDebouncedPreview();
     }
 
     private async Task GenerateSliceFilesWithTemplateEngine(
@@ -303,28 +283,42 @@ public partial class Index
 
         try
         {
-            var wooqlawProfile = CodeCofig.Profiles.FirstOrDefault();
-            if (wooqlawProfile?.Projects != null)
+            var profile = CodeCofig?.Profiles.FirstOrDefault();
+            if (profile?.Projects != null)
             {
                 // Automatically detect the base path
-                var detectedBasePath = PathDetectionService.GetFeatureGenerationBasePath();
+                var basePath = PathDetectionService.GetFeatureGenerationBasePath();
+
+                // Build SliceDescriptors from FormViewModel
+                var listing = M.EnableListing && !string.IsNullOrWhiteSpace(M.ListingName)
+                    ? new SliceDescriptor(M.ListingName!, NameDerivationService.DerivePrefix(M.ListingName!))
+                    : null;
+
+                var form = M.EnableForm && !string.IsNullOrWhiteSpace(M.FormName)
+                    ? new SliceDescriptor(M.FormName!, NameDerivationService.DerivePrefix(M.FormName!))
+                    : null;
+
+                var action = M.EnableAction && !string.IsNullOrWhiteSpace(M.ActionName)
+                    ? new SliceDescriptor(M.ActionName!, NameDerivationService.DerivePrefix(M.ActionName!))
+                    : null;
+
+                var selectList = M.EnableSelectList && !string.IsNullOrWhiteSpace(M.SelectListName)
+                    ? new SelectListDescriptor(M.SelectListName!, NameDerivationService.DerivePrefix(M.SelectListName!),
+                        M.SelectListModelType, M.SelectListDataType)
+                    : null;
 
                 // Generate file preview for the new slice being configured
                 var newPreviews = await FeatureService.PreviewFeatureFilesAsync(
-                    componentPrefix: M.ComponentPrefix ?? "",
-                    featurePluralName: M.FeaturePluralName ?? "",
-                    moduleNamespace: M.NameSpace ?? "",
-                    projectNamespace: $"{wooqlawProfile.Projects.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
-                    primaryKeyType: M.PkType ?? "string",
-                    basePath: detectedBasePath,
+                    listing: listing,
+                    form: form,
+                    action: action,
+                    selectList: selectList,
+                    moduleNamespace: M.NameSpace,
+                    projectNamespace: $"{profile?.Projects?.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
+                    primaryKeyType: M.PkType ?? "Guid",
+                    basePath: basePath,
                     directoryName: M.DirectoryName ?? "",
-                    hasForm: M.GenerateForm,
-                    hasListing: M.GenerateListing,
-                    hasSelectList: M.GenerateSelectList,
-                    selectListModelType: M.SelectListModelType,
-                    selectListDataType: M.SelectListDataType,
-                    projects: wooqlawProfile.Projects.ToList()
-                );
+                    projects: profile?.Projects?.ToList() ?? new());
 
                 // Merge: start from all existing, remove any that the new slice overwrites,
                 // then prepend the new ones so they appear first within their project group.
@@ -341,9 +335,9 @@ public partial class Index
                 if (PreviewFiles != null)
                 {
                     PlacementGuidance = await PlacementService.AnalyzePlacementAsync(
-                        componentPrefix: M.ComponentPrefix ?? "",
+                        componentPrefix: listing?.Prefix ?? form?.Prefix ?? action?.Prefix ?? selectList?.Prefix ?? "",
                         moduleNamespace: M.NameSpace ?? "",
-                        projectNamespace: $"{wooqlawProfile.Projects.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
+                        projectNamespace: $"{profile?.Projects?.FirstOrDefault()?.NameSpace}.{M.NameSpace}",
                         basePath: "",
                         newFiles: PreviewFiles
                     );
@@ -401,43 +395,42 @@ public partial class Index
         return !string.IsNullOrEmpty(M.DirectoryName) &&
                !string.IsNullOrEmpty(M.NameSpace) &&
                !string.IsNullOrEmpty(M.PkType) &&
-               (M.GenerateForm || M.GenerateListing || M.GenerateSelectList);
+               M.HasAnySlice;
     }
 
 }
 public class FormViewModel
 {
-    // public bool ValidationForCMS { get; set; }
-    public FormViewModel()
-    {
-
-    }
-
     [Required]
     public string? DirectoryName { get; set; }
 
-    public string NameSpace { get; set; }
+    public string NameSpace { get; set; } = "";
 
-    [Required]
-    public string? ComponentPrefix { get; set; }
+    // Per-slice enable + name pairs
+    public bool EnableListing { get; set; } = true;
+    public string? ListingName { get; set; }
 
-    [Required]
-    public string? FeaturePluralName { get; set; }
+    public bool EnableForm { get; set; } = true;
+    public string? FormName { get; set; }
 
-    public bool GenerateListing { get; set; }
+    public bool EnableAction { get; set; }
+    public string? ActionName { get; set; }
+
+    public bool EnableSelectList { get; set; }
+    public string? SelectListName { get; set; }
+    public string SelectListModelType { get; set; } = "SelectOption";
+    public string SelectListDataType { get; set; } = "string";
 
     public bool GenerateControllerAndClientService { get; set; } = true;
 
-    public bool GenerateForm { get; set; }
-
-    public bool GenerateSelectList { get; set; }
-
-    public string SelectListModelType { get; set; } = "SelectOption"; // "SelectOption" or "Custom"
-
-    public string SelectListDataType { get; set; } = "string"; // Used when SelectListModelType is "SelectOption"
-
     [Required]
-    public string? PkType { get; set; } = "string";
+    public string? PkType { get; set; } = "Guid";
+
+    public bool HasAnySlice =>
+        (EnableListing && !string.IsNullOrWhiteSpace(ListingName)) ||
+        (EnableForm && !string.IsNullOrWhiteSpace(FormName)) ||
+        (EnableAction && !string.IsNullOrWhiteSpace(ActionName)) ||
+        (EnableSelectList && !string.IsNullOrWhiteSpace(SelectListName));
 }
 
 
