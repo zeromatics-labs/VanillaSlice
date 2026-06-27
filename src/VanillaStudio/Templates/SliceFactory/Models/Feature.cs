@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using {{RootNamespace}}.SliceFactory.Cli;
 using {{RootNamespace}}.SliceFactory.Components.Pages;
 
 namespace {{RootNamespace}}.SliceFactory.Models;
@@ -7,8 +8,6 @@ public class Feature
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    public string ComponentPrefix { get; set; } = string.Empty;
-    public string FeaturePluralName { get; set; } = string.Empty;
     public string ModuleNamespace { get; set; } = string.Empty;
     public string ProjectNamespace { get; set; } = string.Empty;
     public string PrimaryKeyType { get; set; } = string.Empty;
@@ -22,12 +21,11 @@ public class Feature
 
     public string DirectoryName { get; set; } = string.Empty;
 
-    public bool HasForm { get; set; }
-    public bool HasListing { get; set; }
-    public bool HasSelectList { get; set; }
-
-    public string SelectListModelType { get; set; } = "SelectOption"; // "SelectOption" or "Custom"
-    public string SelectListDataType { get; set; } = "string"; // Used when SelectListModelType is "SelectOption"
+    // Per-slice descriptors — null means not generated
+    public SliceDescriptor? Listing { get; set; }
+    public SliceDescriptor? Form { get; set; }
+    public SliceDescriptor? Action { get; set; }
+    public SelectListDescriptor? SelectList { get; set; }
 
     public string UIFramework { get; set; } = "Bootstrap";
 

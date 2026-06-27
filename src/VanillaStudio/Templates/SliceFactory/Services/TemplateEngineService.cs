@@ -167,9 +167,11 @@ public class TemplateEngineService
         string primaryKeyType,
         string? uiFramework = null,
         string? selectListModelType = null,
-        string? selectListDataType = null)
+        string? selectListDataType = null,
+        string? componentPrefixPlural = null)
     {
-        var pluralizedPrefix = _pluralizationService.Pluralize(componentPrefix);
+        var pluralizedPrefix = componentPrefixPlural
+            ?? _pluralizationService.Pluralize(componentPrefix);
 
         var parameters = new Dictionary<string, object>
         {
@@ -182,13 +184,9 @@ public class TemplateEngineService
             ["primaryKeyType"] = primaryKeyType
         };
 
-        // Add UIFramework parameter if provided
         if (!string.IsNullOrEmpty(uiFramework))
-        {
             parameters["UIFramework"] = uiFramework;
-        }
 
-        // Add SelectList parameters if provided
         if (!string.IsNullOrEmpty(selectListModelType))
         {
             parameters["selectListModelType"] = selectListModelType;
