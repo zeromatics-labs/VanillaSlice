@@ -197,10 +197,9 @@
             "No. The generated code is standalone and there is no runtime service to charge for. The project is open-source by design, with nothing to lock you in.")
     };
 
-    private static readonly JsonSerializerOptions JsonSeoOptions = new()
-    {
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
+    // Use the default (HTML-safe) encoder so that <, >, & are escaped to \uXXXX,
+    // keeping the inline JSON-LD block safe against </script> injection.
+    private static readonly JsonSerializerOptions JsonSeoOptions = new();
 
     private const string SoftwareAppJsonLd = @"{
   ""@context"": ""https://schema.org"",

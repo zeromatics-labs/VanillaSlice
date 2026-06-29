@@ -23,7 +23,7 @@
 /* ---------- Top bar ---------- */
 .vs-topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 0; max-width: 1140px; margin: 0 auto; padding-left: 1rem; padding-right: 1rem;
+    padding: 1rem; max-width: 1140px; margin: 0 auto;
 }
 .vs-wordmark { font-weight: 900; font-size: 1.3rem; color: var(--vs-ink); display: inline-flex; align-items: center; gap: .5rem; }
 .vs-wordmark i { color: var(--vs-primary); }
