@@ -143,6 +143,51 @@
 .wizard-shell .spinner-border-sm { width: 1rem; height: 1rem; }
 .wizard-shell .alert { border-radius: 0.6rem; border: none; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 
+/* ---------- Constrained width ---------- */
+.wizard-container { max-width: 1140px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ---------- Left rail: vertical stepper ---------- */
+.wizard-shell .wizard-rail { position: sticky; top: 1.25rem; }
+.wizard-shell .wsteps { list-style: none; margin: 0 0 1.25rem; padding: 0; }
+.wizard-shell .wstep { position: relative; }
+.wizard-shell .wstep:not(:last-child)::before {
+    content: ""; position: absolute; left: 14px; top: 30px; bottom: -2px;
+    width: 2px; background: var(--w-line); z-index: 0;
+}
+.wizard-shell .wstep.is-done:not(:last-child)::before { background: var(--w-signal); }
+.wizard-shell .wstep-btn {
+    display: flex; gap: 0.85rem; align-items: flex-start; width: 100%; text-align: left;
+    background: none; border: none; padding: 0.35rem 0 0.95rem; cursor: pointer;
+}
+.wizard-shell .wstep-btn:disabled { cursor: default; opacity: 0.85; }
+.wizard-shell .wstep-dot {
+    position: relative; z-index: 1; flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; font-size: 0.85rem;
+    background: #fff; border: 2px solid var(--w-line); color: var(--w-dim); transition: all 0.2s ease;
+}
+.wizard-shell .wstep.is-current .wstep-dot {
+    background: var(--w-ink); border-color: var(--w-ink); color: #fff; box-shadow: 0 0 0 4px rgba(13, 17, 23, 0.10);
+}
+.wizard-shell .wstep.is-done .wstep-dot { background: var(--w-signal); border-color: var(--w-signal); color: var(--w-ink); }
+.wizard-shell .wstep-text { display: flex; flex-direction: column; padding-top: 3px; }
+.wizard-shell .wstep-title {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem;
+    color: var(--w-dim); line-height: 1.2; transition: color 0.2s ease;
+}
+.wizard-shell .wstep.is-current .wstep-title, .wizard-shell .wstep.is-done .wstep-title { color: var(--w-ink); }
+.wizard-shell .wstep-btn:not(:disabled):hover .wstep-title { color: var(--w-ink); }
+.wizard-shell .wstep-desc { font-size: 0.78rem; color: var(--w-dim); margin-top: 2px; }
+
+/* Compact summary */
+.wizard-shell .wizard-summary { border: 1px solid var(--w-line); border-radius: 12px; padding: 1rem 1.1rem; background: #fff; }
+.wizard-shell .wizard-summary-name {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--w-ink);
+    margin-bottom: 0.7rem; word-break: break-word;
+}
+.wizard-shell .wizard-summary dl { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 0.8rem; margin: 0; font-size: 0.82rem; }
+.wizard-shell .wizard-summary dt { color: var(--w-dim); font-weight: 500; }
+.wizard-shell .wizard-summary dd { margin: 0; color: var(--w-ink); font-weight: 600; text-align: right; word-break: break-word; }
+
 @keyframes wzfade { from { opacity: 0; } to { opacity: 1; } }
 
 /* ---------- Responsive ---------- */
