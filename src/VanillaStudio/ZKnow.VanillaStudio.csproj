@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-ZKnow.VanillaStudio-2d3cf984-7964-4f6f-83e8-eb6124c128a6</UserSecretsId>
-		<Version>0.4.0</Version>
+		<Version>0.4.1</Version>
 		<AssemblyTitle>ZKnow.VanillaStudio</AssemblyTitle>
 		<Product>ZKnow.VanillaStudio</Product>
 		<Description>ZKnow.VanillaStudio - Professional Blazor Project Generator</Description>

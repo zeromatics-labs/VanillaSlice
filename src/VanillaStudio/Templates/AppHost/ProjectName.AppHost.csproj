@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.1" />
+{{AspireProjectOpenTag}}
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,9 +8,7 @@
     <UserSecretsId>{{UserSecretsId}}</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
-  </ItemGroup>
+{{AspirePackageGroup}}
 
   <ItemGroup>
     <ProjectReference Include="..\{{ProjectName}}.WebAPI\{{ProjectName}}.WebAPI.csproj" />

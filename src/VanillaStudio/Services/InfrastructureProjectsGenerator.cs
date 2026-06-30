@@ -83,7 +83,10 @@ namespace ZKnow.VanillaStudio.Services
                     ["ProjectName"] = config.ProjectName,
                     ["RootNamespace"] = $"{config.ProjectName}.ServiceDefaults",
                     ["TargetFramework"] = config.TargetFramework,
-                    ["AspNetCoreVersion"] = config.AspNetCoreVersion
+                    ["AspNetCoreVersion"] = config.AspNetCoreVersion,
+                    ["ResiliencePackageVersion"] = config.ResiliencePackageVersion,
+                    ["ServiceDiscoveryVersion"] = config.ServiceDiscoveryVersion,
+                    ["OpenTelemetryVersion"] = config.OpenTelemetryVersion
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(
@@ -115,6 +118,8 @@ namespace ZKnow.VanillaStudio.Services
                     ["RootNamespace"] = $"{config.ProjectName}.AppHost",
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
+                    ["AspireProjectOpenTag"] = config.AspireProjectOpenTag,
+                    ["AspirePackageGroup"] = config.AspirePackageGroup,
                     ["UserSecretsId"] = Guid.NewGuid().ToString()
                 };
 

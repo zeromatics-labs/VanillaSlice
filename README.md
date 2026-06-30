@@ -30,10 +30,10 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 - **Tailwind CSS** - ✅ **Fully Implemented**  - Utility-first CSS framework
 
 ### ✅ **Database Support**
-- **SQL Server** - ✅ **Fully Implemented**
-- **SQLite** - 📅 **TBD**
-- **PostgreSQL** - 📅 **TBD**
-- **No Database Option** - 📅 **TBD**
+- **SQL Server** - ✅ **Fully Implemented** — EF Core + Identity + migrations
+- **SQLite** - ✅ **Fully Implemented** — lightweight dev/test option
+- **PostgreSQL** - ✅ **Fully Implemented** — open-source production option
+- **No Database Option** - ✅ **Fully Implemented** — API-only or external data sources
 
 ### ✅ **Authentication & Security**
 - **Identity Integration** - ✅ **Fully Implemented**
@@ -58,7 +58,7 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 | **Services & Features** |
 | Authentication | ✅ **Complete** | Identity with JWT support |
 | Database Integration | ✅ **Complete** | EF Core with multiple providers |
-| Dialog Services | 🔄 **In Progress** | Modal and popup management |
+| Dialog Services | ✅ **Complete** | DialogService + DialogContainer generated in Framework project |
 | Notification Services | 🔄 **In Progress** | Toast and alert systems |
 | **Advanced Features** |
 | Push Notifications | 📅 **TBD** | Mobile and web push support |
@@ -70,9 +70,9 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 ## Quick Start
 
 ### Prerequisites
-- .NET 9.0 SDK or later
-- Visual Studio 2022 or VS Code
-- SQL Server (optional - SQLite available for development)
+- .NET 9.0 SDK or .NET 10.0 SDK (select your target version in the wizard)
+- Visual Studio 2022 (17.12+) or VS Code with C# Dev Kit
+- SQL Server (optional — SQLite available for development)
 
 ### Running the VanillaStudio
 
@@ -156,7 +156,9 @@ The generated solutions follow **Clean Architecture** principles:
 - **SQL Server**: Production-ready with advanced features
 - **PostgreSQL**: Open-source alternative with full feature support
 - **SQLite**: Development and lightweight deployment scenarios
-- **No Database**: In-memory or external data sources
+- **No Database**: In-memory or external data source integrations
+
+> All four providers are fully selectable in the project wizard and generate correct EF Core configuration, migrations support, and connection string setup.
 
 ### Entity Framework Features
 - Code-first migrations

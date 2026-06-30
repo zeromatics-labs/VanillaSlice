@@ -71,6 +71,25 @@ namespace ZKnow.VanillaStudio.Models
             ? "net9.0-windows10.0.19041.0"
             : "net10.0-windows10.0.19041.0";
 
+        // Aspire versioning: 9.x targets .NET 9, 13.x targets .NET 10 (independent versioning scheme)
+        public string AspireVersion => DotNetVersion == DotNetVersion.Net9 ? "9.3.1" : "13.0.0";
+
+        // ServiceDefaults package versions — Microsoft.Extensions follows .NET versioning; OTel is independent
+        public string ResiliencePackageVersion      => DotNetVersion == DotNetVersion.Net9 ? "9.4.0"  : "10.0.0";
+        public string ServiceDiscoveryVersion       => DotNetVersion == DotNetVersion.Net9 ? "9.3.1"  : "10.0.0";
+        public string OpenTelemetryVersion          => "1.12.0";
+
+        // AppHost csproj SDK section differs between Aspire 9.x and 13.x.
+        // Net9: two-element format (Microsoft.NET.Sdk base + Aspire SDK element).
+        // Net10/Aspire13: single SDK attribute on <Project> tag; hosting package auto-included by SDK.
+        public string AspireProjectOpenTag => DotNetVersion == DotNetVersion.Net9
+            ? "<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <Sdk Name=\"Aspire.AppHost.Sdk\" Version=\"9.3.1\" />"
+            : "<Project Sdk=\"Aspire.AppHost.Sdk/13.0.0\">";
+
+        public string AspirePackageGroup => DotNetVersion == DotNetVersion.Net9
+            ? "  <ItemGroup>\r\n    <PackageReference Include=\"Aspire.Hosting.AppHost\" Version=\"9.3.1\" />\r\n  </ItemGroup>"
+            : "";
+
         public ProjectConfiguration()
         {
 #if DEBUG
@@ -89,10 +108,10 @@ namespace ZKnow.VanillaStudio.Models
 
     public enum DotNetVersion
     {
-        [Display(Name = ".NET 9 (LTS)")]
+        [Display(Name = ".NET 9 (STS)")]
         Net9 = 1,
 
-        [Display(Name = ".NET 10 (Latest)")]
+        [Display(Name = ".NET 10 (LTS)")]
         Net10 = 2
     }
 

@@ -7,30 +7,32 @@
 {
     @foreach (var dialog in DialogService.Dialogs)
     {
-        <div class="fixed inset-0 flex items-center justify-center p-4" style="z-index: @dialog.ZIndex"  >
+        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;z-index:@dialog.ZIndex">
             <!-- Backdrop -->
-            <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-                 @onclick="() => DialogService.CloseDialog(dialog.DialogId)"></div>
+            <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);"
+                 @onclick="() => { if (dialog.CloseOnBackdropClick) DialogService.CloseDialog(dialog.DialogId); }"></div>
 
-            <!-- Dialog -->
-            <div class="relative bg-white dark:bg-gray-800 border rounded-lg shadow-2xl w-full @GetWidthClass(dialog) @GetHeightClass(dialog) flex flex-col transform transition-all"
+            <!-- Dialog panel -->
+            <div style="position:relative;background:#fff;border-radius:0.5rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);display:flex;flex-direction:column;@GetSizeStyle(dialog)"
                  @onclick:stopPropagation="true">
 
                 <!-- Header -->
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid #e5e7eb;">
+                    <h5 style="margin:0;font-size:1.125rem;font-weight:600;">
                         @dialog.Title
-                    </h3>
+                    </h5>
                     <button type="button"
-                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" @onclick="() => DialogService.CloseDialog(dialog.DialogId)">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.25rem;line-height:1;"
+                            @onclick="() => DialogService.CloseDialog(dialog.DialogId)"
+                            aria-label="Close">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
 
                 <!-- Content -->
-                <div class="flex-1 overflow-y-auto px-6 py-4">
+                <div style="flex:1;overflow-y:auto;padding:1.5rem;">
                     <DynamicComponent Type="@dialog.ComponentType" Parameters="@dialog.Parameters" />
                 </div>
             </div>
@@ -42,34 +44,13 @@
     protected override void OnInitialized()
     {
         DialogService.OnDialogsChanged += StateHasChanged;
-    } 
-
-    private string GetWidthClass(DialogOptions dialog)
-    {
-        if (!string.IsNullOrEmpty(dialog.Width))
-        {
-            // If custom width is provided, use it as a style or class
-            if (dialog.Width.StartsWith("max-w-"))
-            {
-                return dialog.Width; // Tailwind max-width class
-            }
-            return ""; // Will be handled by inline style
-        }
-        return "max-w-2xl"; // Default width
     }
 
-    private string GetHeightClass(DialogOptions dialog)
+    private string GetSizeStyle(DialogOptions dialog)
     {
-        if (!string.IsNullOrEmpty(dialog.Height))
-        {
-            // If custom height is provided
-            if (dialog.Height.StartsWith("max-h-"))
-            {
-                return dialog.Height; // Tailwind max-height class
-            }
-            return ""; // Will be handled by inline style
-        }
-        return "max-h-[90vh]"; // Default height
+        var width = string.IsNullOrEmpty(dialog.Width) ? "width:100%;max-width:42rem;" : $"width:{dialog.Width};";
+        var height = string.IsNullOrEmpty(dialog.Height) ? "max-height:90vh;" : $"max-height:{dialog.Height};";
+        return width + height;
     }
 
     public void Dispose()
