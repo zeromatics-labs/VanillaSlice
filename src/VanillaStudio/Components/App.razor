@@ -26,6 +26,28 @@
 
 <body>
     <Routes @rendermode="PageRenderMode" />
+    @* The landing page (/) is styled with Tailwind; the rest of the app uses Bootstrap.
+       Blazor enhanced navigation swaps the <body> but not the <head> stylesheet set, so
+       crossing between them left pages unstyled until a manual refresh (data-enhance-nav
+       and disableDomPreservation did not reliably prevent this here). This capture-phase
+       handler forces a full document load only when a click crosses the landing boundary
+       in either direction; in-app navigation keeps enhanced navigation. *@
+    <script>
+        document.addEventListener('click', function (e) {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            var a = e.target.closest && e.target.closest('a[href]');
+            if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+            var url;
+            try { url = new URL(a.href, document.baseURI); } catch (_) { return; }
+            if (url.origin !== location.origin) return;
+            var isLanding = function (p) { return p === '/' || p === ''; };
+            if (isLanding(url.pathname) !== isLanding(location.pathname)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                window.location.assign(url.href);
+            }
+        }, true);
+    </script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 
