@@ -1,0 +1,9 @@
+<details class="vs-faq-item">
+    <summary class="vs-faq-q">@Question</summary>
+    <div class="vs-faq-a">@Answer</div>
+</details>
+
+@code {
+    [Parameter, EditorRequired] public string Question { get; set; } = "";
+    [Parameter, EditorRequired] public string Answer { get; set; } = "";
+}

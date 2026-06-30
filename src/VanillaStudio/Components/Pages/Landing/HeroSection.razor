@@ -1,0 +1,44 @@
+<section class="vs-hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="vs-eyebrow">Open Source · MIT · .NET 9</span>
+                <h1 class="vs-hero-title">Vertical Slice + Clean Architecture for .NET — free, open, and yours to keep.</h1>
+                <p class="vs-hero-sub">
+                    VanillaSlice generates complete, end-to-end feature slices for Blazor Web and .NET MAUI.
+                    It is code that generates code — every line is plain C# you own, tweak, and ship.
+                    No runtime dependency, no lock-in, nothing to monetize.
+                </p>
+                <div class="vs-hero-cta">
+                    <a class="btn vs-btn-primary btn-lg" href="/wizard">
+                        <i class="bi bi-magic"></i> Generate Your Project
+                    </a>
+                    <a class="btn vs-btn-ghost btn-lg" href="https://github.com/zero-know/VanillaSlice" target="_blank" rel="noopener">
+                        <i class="bi bi-github"></i> View Source on GitHub
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="vs-code-window" aria-hidden="true">
+                    <div class="vs-code-bar"><span></span><span></span><span></span></div>
+<pre class="vs-code-body"><code>Products/                         # one self-contained slice
+├─ ProductListing/
+│  ├─ ProductListing.razor        # UI
+│  ├─ ProductListingViewModel.cs
+│  ├─ ProductListingClient.cs     # typed HttpClient
+│  ├─ ProductListingController.cs # REST endpoint
+│  └─ ProductListingService.cs    # business logic + queries
+└─ ProductForm/
+   ├─ ProductForm.razor
+   ├─ ProductFormViewModel.cs
+   ├─ ProductFormClient.cs
+   ├─ ProductFormController.cs
+   └─ ProductFormService.cs
+
+# DI, routing, endpoints — all pre-wired.
+# Add fields, implement queries. Done.</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

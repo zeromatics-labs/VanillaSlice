@@ -1,0 +1,21 @@
+<div class="col-md-4 mb-4">
+    <div class="vs-feature-card h-100">
+        <div class="vs-feature-icon"><i class="bi @Icon"></i></div>
+        <div class="vs-feature-head">
+            <h3 class="vs-feature-title">@Title</h3>
+            @if (!string.IsNullOrEmpty(Status))
+            {
+                <span class="vs-badge @StatusClass">@Status</span>
+            }
+        </div>
+        <p class="vs-feature-body">@Body</p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Body { get; set; } = "";
+    [Parameter] public string? Status { get; set; }
+    [Parameter] public string? StatusClass { get; set; }
+}

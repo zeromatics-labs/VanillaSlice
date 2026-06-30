@@ -1,0 +1,15 @@
+<div class="col-md-4 mb-4">
+    <div class="vs-step-card">
+        <div class="vs-step-number">@Number</div>
+        <div class="vs-step-icon"><i class="bi @Icon"></i></div>
+        <h3 class="vs-step-title">@Title</h3>
+        <p class="vs-step-body">@Body</p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int Number { get; set; }
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Body { get; set; } = "";
+}

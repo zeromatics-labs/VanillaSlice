@@ -1,109 +1,232 @@
-﻿@page "/"
-@using System.Reflection
+@page "/"
+@using System.Text.Json
+@using ZKnow.VanillaStudio.Components.Pages.Landing
 
-<PageTitle>VanillaStudio - Blazor Project Generator</PageTitle>
+<PageTitle>VanillaSlice — Free Vertical Slice & Clean Architecture Templates for .NET (Blazor & MAUI)</PageTitle>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="jumbotron bg-dark text-white p-5 rounded mb-4">
-                <h1 class="display-4">
-                    <i class="bi bi-rocket-takeoff-fill"></i> VanillaStudio <a href="https://github.com/zero-know/VanillaSlice/releases/" style="font-size:1rem; color:#79abf8">Release Notes - v(@Assembly.GetExecutingAssembly().GetName().Version)</a>
-                </h1>
-                 
-                <hr class="my-4" />
-                <p>
-                    Create Web-only or Web+MAUI applications with your choice of rendering modes,
-                    component strategies, and integrated features like authentication and database support.
+<HeadContent>
+    <meta name="description" content="VanillaSlice is a free, open-source code generator for .NET that scaffolds vertical-slice, clean-architecture features for Blazor Web and MAUI. Full source, MIT licensed, no lock-in." />
+    <meta name="keywords" content="vertical slice architecture, clean architecture, .NET templates, Blazor templates, MAUI templates, free code generator, SOLID, open source, C#, CRUD scaffolding" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="VanillaSlice" />
+    <link rel="canonical" href="https://vanillaslice.dev/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VanillaSlice" />
+    <meta property="og:title" content="VanillaSlice — Free Vertical Slice & Clean Architecture Templates for .NET" />
+    <meta property="og:description" content="A free, open-source code generator for .NET. Scaffold vertical-slice, clean-architecture features for Blazor Web and MAUI. Full source, MIT, no lock-in." />
+    <meta property="og:url" content="https://vanillaslice.dev/" />
+    <meta property="og:image" content="https://vanillaslice.dev/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VanillaSlice — Free Vertical Slice & Clean Architecture Templates for .NET" />
+    <meta name="twitter:description" content="A free, open-source code generator for .NET. Scaffold vertical-slice, clean-architecture features for Blazor Web and MAUI. Full source, MIT, no lock-in." />
+    <meta name="twitter:image" content="https://vanillaslice.dev/og-image.png" />
+
+    @((MarkupString)$"<script type=\"application/ld+json\">{SoftwareAppJsonLd}</script>")
+    @((MarkupString)$"<script type=\"application/ld+json\">{FaqJsonLd}</script>")
+</HeadContent>
+
+<div class="vs-page">
+
+    <!-- Top bar -->
+    <header class="vs-topbar">
+        <a class="vs-wordmark" href="/"><i class="bi bi-layers-half"></i> VanillaSlice</a>
+        <nav class="vs-topnav">
+            <a href="#architecture">Architecture</a>
+            <a href="#features">Features</a>
+            <a href="#faq">FAQ</a>
+            <a href="@GitHubUrl" target="_blank" rel="noopener">GitHub</a>
+            <a class="btn vs-btn-primary" href="/wizard">Generate Project</a>
+        </nav>
+    </header>
+
+    <HeroSection />
+
+    <!-- Trust bar -->
+    <div class="vs-trustbar">
+        <span class="vs-chip"><i class="bi bi-cash-coin"></i> 100% Free</span>
+        <span class="vs-chip"><i class="bi bi-shield-check"></i> MIT Licensed</span>
+        <span class="vs-chip"><i class="bi bi-file-earmark-code"></i> Full Source Included</span>
+        <span class="vs-chip"><i class="bi bi-plug"></i> No Runtime Dependency</span>
+        <span class="vs-chip"><i class="bi bi-lock"></i> Nothing to Monetize, Ever</span>
+    </div>
+
+    <!-- Architecture -->
+    <section id="architecture" class="vs-section">
+        <div class="container">
+            <div class="vs-section-head">
+                <div class="vs-kicker">Why VanillaSlice</div>
+                <h2 class="vs-h2">Clean Architecture, organized as Vertical Slices</h2>
+                <p class="vs-lead">
+                    Instead of spreading one feature across controller, service, and UI folders, each slice owns its
+                    whole vertical: UI → contract → domain logic → data. The result enforces SOLID by design — features
+                    stay independent, easy to test, and safe to change.
                 </p>
-                <a class="btn btn-light btn-lg" href="/wizard" role="button">
-                    <i class="bi bi-gear-fill"></i> Start Project Wizard
-                </a>
+            </div>
+            <div class="row">
+                <FeatureCard Icon="bi-diagram-3-fill" Title="Self-contained slices"
+                             Body="Every feature ships with its Razor/XAML UI, ViewModel, typed client, controller, and server service — owned end-to-end." />
+                <FeatureCard Icon="bi-shield-lock-fill" Title="SOLID by default"
+                             Body="The factory enforces structure through interfaces and safe stubs, so you write domain logic — not plumbing." />
+                <FeatureCard Icon="bi-arrow-repeat" Title="Absorbs .NET evolution"
+                             Body="Thin, feature-centric slices keep regressions low and let your codebase grow with the platform and AI co-authoring." />
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-diagram-3-fill text-"></i> Flexible Architecture
-                    </h5>
-                    <p class="card-text">
-                        Choose between Web-only or Web+MAUI applications with configurable
-                        rendering modes (Auto, Server-only, or Static SSR).
-                    </p>
-                </div>
+    <!-- How it works -->
+    <section class="vs-section vs-section-alt">
+        <div class="container">
+            <div class="vs-section-head">
+                <div class="vs-kicker">How it works</div>
+                <h2 class="vs-h2">From idea to a runnable solution in three steps</h2>
+            </div>
+            <div class="row">
+                <StepCard Number="1" Icon="bi-sliders" Title="Configure in the wizard"
+                          Body="Pick your platform (Blazor Web or Web + MAUI), UI framework, database, and auth. No setup, no install." />
+                <StepCard Number="2" Icon="bi-magic" Title="Generate the solution"
+                          Body="Download a complete, pre-wired solution — projects, DI, routing, endpoints, and sample CRUD slices included." />
+                <StepCard Number="3" Icon="bi-pencil-square" Title="Own & tweak every line"
+                          Body="It's plain C#. Add fields, implement queries, and ship. There's no SDK between you and your code." />
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-puzzle-fill text-success"></i> Component Strategies
-                    </h5>
-                    <p class="card-text">
-                        Select between common Razor libraries for reusability across projects
-                        or embedded components for simpler structures.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-download text-info"></i> Complete Projects
-                    </h5>
-                    <p class="card-text">
-                        Generate complete, runnable project structures with proper dependencies,
-                        solution files, and Framework.Core integration.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="bi bi-list-check"></i> Features</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><i class="bi bi-check-circle-fill text-success"></i> ASP.NET Core Identity Authentication</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Entity Framework Core Database Support</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> REST API Controllers & Client Services</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Sample CRUD Components</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> .NET Aspire Orchestration (Optional)</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Docker Support (Optional)</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Test Projects (Optional)</li>
-                    </ul>
-                </div>
+    <!-- Features -->
+    <section id="features" class="vs-section">
+        <div class="container">
+            <div class="vs-section-head">
+                <div class="vs-kicker">What you get</div>
+                <h2 class="vs-h2">Batteries included, your choice of stack</h2>
+            </div>
+            <div class="row">
+                <FeatureCard Icon="bi-window-stack" Title="Blazor Web" Status="Ready" StatusClass="vs-badge-done"
+                             Body="Server-side and WebAssembly rendering with configurable render modes." />
+                <FeatureCard Icon="bi-phone" Title="MAUI Hybrid" Status="Ready" StatusClass="vs-badge-done"
+                             Body="Cross-platform mobile from the same shared Razor components." />
+                <FeatureCard Icon="bi-phone-vibrate" Title="MAUI Native" Status="Ready" StatusClass="vs-badge-done"
+                             Body="Native XAML frontend over the same shared backend slices." />
+                <FeatureCard Icon="bi-palette" Title="UI Frameworks" Status="Ready" StatusClass="vs-badge-done"
+                             Body="Bootstrap 5, Microsoft Fluent UI, and Tailwind CSS implemented out of the box." />
+                <FeatureCard Icon="bi-database-fill" Title="Database & EF Core" Status="Ready" StatusClass="vs-badge-done"
+                             Body="SQL Server with Entity Framework Core — migrations, seeding, and the repository pattern." />
+                <FeatureCard Icon="bi-shield-lock" Title="Auth & Security" Status="Ready" StatusClass="vs-badge-done"
+                             Body="ASP.NET Core Identity, authorization policies, and JWT token support." />
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="bi bi-database-fill"></i> Database Support</h5>
+    </section>
+
+    <!-- Confidence -->
+    <section class="vs-section">
+        <div class="container">
+            <div class="vs-confidence">
+                <div class="vs-section-head" style="margin-bottom:1rem;">
+                    <h2 class="vs-h2">It's code that generates code</h2>
+                    <p class="vs-lead">VanillaSlice writes a starting point and then gets out of your way. There is nothing to lock you in — and nothing we could ever charge you for.</p>
                 </div>
-                <div class="card-body">
-                    <p>Choose from multiple database providers:</p>
-                    <ul class="list-unstyled">
-                        <li><i class="bi bi-server"></i> SQL Server</li>
-                        <li><i class="bi bi-file-earmark-code"></i> SQLite</li>
-                        <li><i class="bi bi-database"></i> PostgreSQL</li>
-                        <li><i class="bi bi-x-circle"></i> No Database</li>
-                    </ul>
-                    <p class="text-muted small">
-                        Database configurations include proper Entity Framework setup,
-                        connection strings, and migration support.
-                    </p>
-                </div>
+                <ul class="vs-confidence-list">
+                    <li><i class="bi bi-check-circle-fill"></i> No runtime SDK, package, or service dependency — the generated code is fully standalone.</li>
+                    <li><i class="bi bi-check-circle-fill"></i> MIT licensed, full source on GitHub — fork it, audit it, change anything.</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Use the generated code commercially with zero obligations.</li>
+                    <li><i class="bi bi-check-circle-fill"></i> No accounts, no telemetry paywall, no "pro tier" — and no plan to add one.</li>
+                </ul>
             </div>
         </div>
-    </div>
-     
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="vs-section vs-section-alt">
+        <div class="container">
+            <div class="vs-section-head">
+                <div class="vs-kicker">FAQ</div>
+                <h2 class="vs-h2">Questions, answered</h2>
+            </div>
+            <div class="vs-faq">
+                @foreach (var f in Faqs)
+                {
+                    <FaqItem Question="@f.Question" Answer="@f.Answer" />
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="vs-finalcta">
+        <div class="container">
+            <h2 class="vs-h2">Generate your project now</h2>
+            <p class="vs-lead mb-4">Free, in your browser, no sign-up. You'll have a runnable solution in minutes.</p>
+            <a class="btn vs-btn-primary btn-lg" href="/wizard"><i class="bi bi-magic"></i> Start the Wizard</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="vs-footer">
+        <div class="container text-center">
+            <div class="vs-wordmark justify-content-center"><i class="bi bi-layers-half"></i> VanillaSlice</div>
+            <div class="vs-footer-links">
+                <a href="@GitHubUrl" target="_blank" rel="noopener">GitHub</a>
+                <a href="@($"{GitHubUrl}/releases")" target="_blank" rel="noopener">Releases</a>
+                <a href="@($"{GitHubUrl}/blob/main/LICENSE")" target="_blank" rel="noopener">MIT License</a>
+                <a href="/wizard">Generate Project</a>
+            </div>
+            <p class="small mt-3 mb-0">Free &amp; open-source under the MIT License.</p>
+        </div>
+    </footer>
+
 </div>
+
+@code {
+    private const string GitHubUrl = "https://github.com/zero-know/VanillaSlice";
+
+    private record Faq(string Question, string Answer);
+
+    private static readonly Faq[] Faqs = new[]
+    {
+        new Faq("Is VanillaSlice really free?",
+            "Yes. It is open-source under the MIT License, with the full source available on GitHub. There is no paid tier, no account, and no usage limit."),
+        new Faq("What is vertical slice architecture?",
+            "Vertical slice architecture organizes code by feature rather than by technical layer. Each slice contains everything one feature needs — UI, contracts, domain logic, and data access — so features stay independent and easy to change."),
+        new Faq("Do I depend on VanillaSlice at runtime?",
+            "No. VanillaSlice generates plain C# source code into your solution. Once generated, your project has no dependency on VanillaSlice — it runs entirely on standard .NET."),
+        new Faq("Can I use the generated code commercially?",
+            "Absolutely. The MIT License lets you use, modify, and distribute the generated code in commercial products with no obligations."),
+        new Faq("Will VanillaSlice ever be monetized?",
+            "No. The generated code is standalone and there is no runtime service to charge for. The project is open-source by design, with nothing to lock you in.")
+    };
+
+    // Use the default (HTML-safe) encoder so that <, >, & are escaped to \uXXXX,
+    // keeping the inline JSON-LD block safe against </script> injection.
+    private static readonly JsonSerializerOptions JsonSeoOptions = new();
+
+    private const string SoftwareAppJsonLd = @"{
+  ""@context"": ""https://schema.org"",
+  ""@type"": ""SoftwareApplication"",
+  ""name"": ""VanillaSlice"",
+  ""description"": ""A free, open-source code generator for .NET that scaffolds vertical-slice, clean-architecture features for Blazor Web and MAUI."",
+  ""applicationCategory"": ""DeveloperApplication"",
+  ""operatingSystem"": ""Windows, macOS, Linux"",
+  ""url"": ""https://vanillaslice.dev/"",
+  ""license"": ""https://opensource.org/licenses/MIT"",
+  ""sameAs"": ""https://github.com/zero-know/VanillaSlice"",
+  ""offers"": { ""@type"": ""Offer"", ""price"": ""0"", ""priceCurrency"": ""USD"" }
+}";
+
+    private string FaqJsonLd => JsonSerializer.Serialize(new Dictionary<string, object?>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "FAQPage",
+        ["mainEntity"] = Faqs.Select(f => new Dictionary<string, object?>
+        {
+            ["@type"] = "Question",
+            ["name"] = f.Question,
+            ["acceptedAnswer"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "Answer",
+                ["text"] = f.Answer
+            }
+        }).ToArray()
+    }, JsonSeoOptions);
+}
