@@ -1,203 +1,156 @@
-/* Project Wizard Enhanced Styles */
+/* .NET Project Wizard — brand-aligned theme (ink + amber), matching the landing page.
+   Everything is scoped under .wizard-shell so it never leaks into other Bootstrap pages. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-/* Step Indicators */
-.step-indicator {
+.wizard-shell {
+    --w-ink: #0D1117;
+    --w-line: #E2E7ED;
+    --w-paper: #F2F4F7;
+    --w-signal: #FFC24B;
+    --w-signal-600: #E8A21F;
+    --w-dim: #5A6675;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #14122B;
+    background: var(--w-paper);
+    padding-bottom: 2rem;
+}
+
+.wizard-shell h1, .wizard-shell h2, .wizard-shell h3,
+.wizard-shell h4, .wizard-shell h5, .wizard-shell h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+}
+.wizard-shell .font-monospace, .wizard-shell code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ---------- Hero header ---------- */
+.wizard-shell .wizard-hero {
+    background: linear-gradient(180deg, #0D1117, #11161f);
+    border-bottom: 1px solid #232A33;
+}
+.wizard-shell .wizard-hero h1 { font-weight: 800; }
+.wizard-shell .wizard-hero .bi-magic { color: var(--w-signal); }
+.wizard-shell .wizard-hero .badge.bg-light {
+    background: rgba(255, 194, 75, 0.15) !important;
+    color: var(--w-signal) !important;
+    border: 1px solid rgba(255, 194, 75, 0.30);
+    font-weight: 700;
+}
+
+/* ---------- Progress + step indicators ---------- */
+.wizard-shell .progress { background: #E2E7ED; border-radius: 999px; }
+.wizard-shell .progress-bar { transition: width 0.6s ease; }
+.wizard-shell .progress-bar.bg-success {
+    background: linear-gradient(90deg, var(--w-signal), var(--w-signal-600)) !important;
+}
+.wizard-shell .step-indicator {
     transition: all 0.3s ease;
-    font-size: 0.9rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-weight: 700;
+    border: 1px solid var(--w-line);
+}
+.wizard-shell .step-indicator.bg-dark { background: var(--w-ink) !important; color: #fff !important; border-color: var(--w-ink); }
+.wizard-shell .step-indicator.bg-success { background: var(--w-signal) !important; color: var(--w-ink) !important; border-color: var(--w-signal); }
+.wizard-shell .step-indicator.bg-light { background: #fff !important; color: var(--w-dim) !important; }
+
+/* ---------- Cards ---------- */
+.wizard-shell .card { border: 1px solid var(--w-line); border-radius: 14px; animation: wzfade 0.35s ease-out; }
+.wizard-shell .card.shadow-sm { box-shadow: 0 4px 18px rgba(20, 18, 43, 0.06) !important; transition: box-shadow 0.3s ease; }
+.wizard-shell .card.shadow-sm:hover { box-shadow: 0 10px 30px rgba(20, 18, 43, 0.10) !important; }
+.wizard-shell .card-header { border-bottom: 1px solid var(--w-line); border-radius: 14px 14px 0 0 !important; }
+.wizard-shell .card-header.bg-light { background: #F7F8FA !important; border-bottom: 1px solid var(--w-line); }
+.wizard-shell .card-header.bg-dark { background: var(--w-ink) !important; }
+.wizard-shell .card-header.bg-success { background: var(--w-ink) !important; } /* step 4 header → ink, not green */
+.wizard-shell .card-header.bg-dark .step-header-icon,
+.wizard-shell .card-header.bg-success .step-header-icon { color: var(--w-signal); }
+.wizard-shell .card.bg-light { background: #F7F8FA !important; }
+
+/* ---------- Sidebar navigation ---------- */
+.wizard-shell .list-group-item-action { border: none; }
+.wizard-shell .list-group-item-action:hover { background: #F0F2F5; color: var(--w-ink); }
+.wizard-shell .list-group-item-action.active,
+.wizard-shell .list-group-item-action.active:hover {
+    background: var(--w-ink) !important; border-color: var(--w-ink) !important; color: #fff !important;
+}
+.wizard-shell .list-group-item-success { background: rgba(255, 194, 75, 0.10) !important; }
+.wizard-shell .step-nav-indicator { width: 32px; height: 32px; border-radius: 50%; font-weight: 700; transition: all 0.3s ease; }
+.wizard-shell .step-nav-indicator.bg-dark { background: var(--w-ink) !important; color: #fff !important; }
+.wizard-shell .step-nav-indicator.bg-success { background: var(--w-signal) !important; color: var(--w-ink) !important; }
+.wizard-shell .list-group-item-action:hover .step-nav-indicator { transform: scale(1.08); }
+.wizard-shell .list-group-item-action.active .step-nav-indicator { box-shadow: 0 0 0 3px rgba(255, 194, 75, 0.40); }
+
+/* ---------- Section groups ---------- */
+.wizard-shell .section-group { border-left: 3px solid var(--w-line); padding-left: 1rem; transition: border-color 0.3s ease; }
+.wizard-shell .section-group:hover { border-left-color: var(--w-signal); }
+.wizard-shell .section-title { font-size: 1.05rem; font-weight: 700; color: var(--w-ink); margin-bottom: 1rem; }
+.wizard-shell .step-header-icon { font-size: 2rem; opacity: 0.95; }
+
+/* ---------- Selection cards (platform / .NET / UI framework) ---------- */
+.wizard-shell .card.border-primary, .wizard-shell .card.border-success,
+.wizard-shell .card.border-warning, .wizard-shell .card.border-info,
+.wizard-shell .card.border-secondary { border-color: var(--w-line) !important; transition: all 0.25s ease; }
+.wizard-shell .card.border-primary:hover, .wizard-shell .card.border-success:hover,
+.wizard-shell .card.border-warning:hover, .wizard-shell .card.border-info:hover {
+    transform: translateY(-2px); box-shadow: 0 8px 22px rgba(20, 18, 43, 0.10); border-color: #CBD3DC !important;
+}
+/* selected state → unified amber tint + amber border */
+.wizard-shell .card.bg-opacity-10 {
+    background: rgba(255, 194, 75, 0.10) !important;
+    border-color: var(--w-signal) !important;
+    border-width: 2px !important;
 }
 
-.step-indicator.bg-success {
-    background-color: #198754 !important;
+/* ---------- Forms ---------- */
+.wizard-shell .form-control:focus, .wizard-shell .form-select:focus {
+    border-color: var(--w-signal); box-shadow: 0 0 0 0.2rem rgba(255, 194, 75, 0.25);
 }
-
-.step-indicator.bg-primary {
-    background-color: #212529 !important;
-}
-
-/* Step Navigation */
-.step-nav-indicator {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.list-group-item-action:hover .step-nav-indicator {
-    transform: scale(1.1);
-}
-
-.list-group-item-action.active .step-nav-indicator {
-    box-shadow: 0 0 0 3px rgba(33, 37, 41, 0.25);
-}
-
-/* Override Bootstrap's default blue active state for list-group items */
-.list-group-item-action.active {
-    background-color: #495057 !important;
-    border-color: #495057 !important;
-    color: #fff !important;
-}
-
-.list-group-item-action:hover {
-    background-color: #f8f9fa;
-    color: #212529;
-}
-
-.list-group-item-action.active:hover {
-    background-color: #343a40 !important;
-    color: #fff !important;
-}
-
-/* Section Groups */
-.section-group {
-    border-left: 4px solid #e9ecef;
-    padding-left: 1rem;
-    transition: border-color 0.3s ease;
-}
-
-.section-group:hover {
-    border-left-color: #212529;
-}
-
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #495057;
-}
-
-/* Step Header */
-.step-header-icon {
-    font-size: 2rem;
-    opacity: 0.9;
-}
-
-/* Form Enhancements */
-.form-control.is-valid {
+.wizard-shell .form-check-input:checked { background-color: var(--w-ink); border-color: var(--w-ink); }
+.wizard-shell .form-check-input:focus { border-color: var(--w-signal); box-shadow: 0 0 0 0.2rem rgba(255, 194, 75, 0.25); }
+.wizard-shell .form-control.is-valid {
     border-color: #198754;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.38 1.38'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
+    background-repeat: no-repeat; background-position: right calc(0.375em + 0.1875rem) center;
     background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
 }
-
-.form-control.is-invalid {
+.wizard-shell .form-control.is-invalid {
     border-color: #dc3545;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4M7.2 4.6l-1.4 1.4'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right calc(0.375em + 0.1875rem) center;
+    background-repeat: no-repeat; background-position: right calc(0.375em + 0.1875rem) center;
     background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
 }
 
-/* Card Enhancements */
-.card.shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-    transition: box-shadow 0.3s ease;
-}
+/* ---------- Badges ---------- */
+.wizard-shell .badge.bg-success { background: var(--w-signal) !important; color: var(--w-ink) !important; }
+.wizard-shell .badge.bg-secondary { background: #E2E7ED !important; color: var(--w-dim) !important; }
 
-.card.shadow-sm:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
+/* ---------- Buttons ---------- */
+.wizard-shell .btn-lg { padding: 0.75rem 1.5rem; font-size: 1.05rem; font-weight: 700; border-radius: 0.6rem; transition: all 0.2s ease; }
+.wizard-shell .btn-lg:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(20, 18, 43, 0.12); }
+.wizard-shell .btn-dark { background: var(--w-ink); border-color: var(--w-ink); }
+.wizard-shell .btn-dark:hover { background: #1b2230; border-color: #1b2230; }
+.wizard-shell .btn-outline-dark { color: var(--w-ink); border-color: var(--w-line); }
+.wizard-shell .btn-outline-dark:hover { background: var(--w-ink); border-color: var(--w-ink); color: #fff; }
+.wizard-shell .btn-success { background: var(--w-signal); border-color: var(--w-signal); color: var(--w-ink); }
+.wizard-shell .btn-success:hover, .wizard-shell .btn-success:focus { background: var(--w-signal-600); border-color: var(--w-signal-600); color: var(--w-ink); }
+.wizard-shell .btn-outline-success { color: var(--w-signal-600); border-color: var(--w-signal); }
+.wizard-shell .btn-outline-success:hover { background: var(--w-signal); border-color: var(--w-signal); color: var(--w-ink); }
+.wizard-shell .btn-outline-secondary { color: var(--w-dim); border-color: var(--w-line); }
+.wizard-shell .btn-link { color: var(--w-dim); }
 
-/* Progress Bar Animation */
-.progress-bar {
-    transition: width 0.6s ease;
-}
+/* ---------- Tooltips / misc ---------- */
+.wizard-shell .tooltip { font-size: 0.875rem; }
+.wizard-shell .tooltip-inner { max-width: 300px; text-align: left; }
+.wizard-shell .spinner-border-sm { width: 1rem; height: 1rem; }
+.wizard-shell .alert { border-radius: 0.6rem; border: none; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 
-/* Tooltip Enhancements */
-.tooltip {
-    font-size: 0.875rem;
-}
+@keyframes wzfade { from { opacity: 0; } to { opacity: 1; } }
 
-.tooltip-inner {
-    max-width: 300px;
-    text-align: left;
-}
-
-/* Button Enhancements */
-.btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.btn-lg:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Configuration Preview Enhancements */
-.card-header.bg-light {
-    background-color: #f8f9fa !important;
-    border-bottom: 2px solid #e9ecef;
-}
-
-/* Responsive Adjustments */
+/* ---------- Responsive ---------- */
 @media (max-width: 768px) {
-    .step-indicator {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 0.8rem;
+    .wizard-shell .step-indicator { width: 32px !important; height: 32px !important; font-size: 0.8rem; }
+    .wizard-shell .section-group {
+        border-left: none; border-top: 3px solid var(--w-line);
+        padding-left: 0; padding-top: 1rem; margin-top: 1rem;
     }
-    
-    .section-group {
-        border-left: none;
-        border-top: 3px solid #e9ecef;
-        padding-left: 0;
-        padding-top: 1rem;
-        margin-top: 1rem;
-    }
-    
-    .section-group:hover {
-        border-top-color: #212529;
-        border-left-color: transparent;
-    }
-}
-
-/* Animation for step transitions */
-@keyframes slideInRight {
-    from {
-        opacity: 0; 
-    }
-    to {
-        opacity: 1; 
-    }
-}
-
-.card {
-    animation: slideInRight 0.4s ease-out;
-}
-
-/* Loading state enhancements */
-.spinner-border-sm {
-    width: 1rem;
-    height: 1rem;
-}
-
-/* Success/Error message styling */
-.alert {
-    border-radius: 0.5rem;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Platform selection cards */
-.card.border-primary {
-    transition: all 0.3s ease;
-}
-
-.card.border-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 37, 41, 0.15);
-}
-
-.card.bg-primary.bg-opacity-10 {
-    background-color: rgba(33, 37, 41, 0.1) !important;
-    border-color: #212529 !important;
-    border-width: 2px !important;
+    .wizard-shell .section-group:hover { border-top-color: var(--w-signal); border-left-color: transparent; }
 }

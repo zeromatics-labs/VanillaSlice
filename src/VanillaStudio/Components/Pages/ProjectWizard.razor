@@ -10,17 +10,19 @@
 @inject EnhancedProjectGenerationService EnhancedProjectGenerator
 @inject ILogger<ProjectWizard> _logger
 
-<PageTitle>ZKnow.VanillaStudio - Project Configuration Wizard</PageTitle>
+<PageTitle>ZKnow.VanillaStudio - .NET Project Wizard</PageTitle>
+
+<div class="wizard-shell">
 
 <!-- Enhanced Header with Progress -->
-<div class="bg-dark text-white py-4 mb-4">
+<div class="wizard-hero text-white py-4 mb-4">
     <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="mb-2">
-                    <i class="bi bi-magic"></i> Blazor Project Bootstrapper
+                    <i class="bi bi-magic"></i> .NET Project Wizard
                 </h1>
-                <p class="mb-0 opacity-75">Create a complete, production-ready Blazor solution with advanced architecture</p>
+                <p class="mb-0 opacity-75">Create a complete, production-ready .NET solution — UI to backend, pre-wired</p>
             </div>
             <div class="col-md-4 text-end">
                 <div class="badge bg-light text-dark fs-6 px-3 py-2">
@@ -852,6 +854,7 @@
             </EditForm>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Success Popup Component -->
