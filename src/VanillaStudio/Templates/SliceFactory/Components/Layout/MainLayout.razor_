@@ -16,5 +16,6 @@
     <span class="dismiss">&#x2715;</span>
 </div>
 
-<!-- Dialog Container -->
+<!-- Dialog + Toast Containers -->
 <{{ProjectName}}.Framework.Components.DialogContainer />
+<{{ProjectName}}.Framework.Components.ToastContainer />

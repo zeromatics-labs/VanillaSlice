@@ -33,6 +33,9 @@ builder.Services.AddTransient<CookieHandler>();
 // Dialog Service
 builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.DialogService>();
 
+// Toast Service
+builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.ToastService>();
+
 builder.Services.AddHttpClient<BaseHttpClient, HttpCookieClient>("ServerAPI", client =>
 {
     client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);

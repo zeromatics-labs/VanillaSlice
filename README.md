@@ -59,7 +59,7 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 | Authentication | ✅ **Complete** | Identity with JWT support |
 | Database Integration | ✅ **Complete** | EF Core with multiple providers |
 | Dialog Services | ✅ **Complete** | DialogService + DialogContainer generated in Framework project |
-| Notification Services | 🔄 **In Progress** | Toast and alert systems |
+| Notification Services | ✅ **Complete** | ToastService + ToastContainer generated in Framework project; ShowSuccess/ShowError/ShowWarning/ShowInfo API |
 | **Advanced Features** |
 | Push Notifications | 📅 **TBD** | Mobile and web push support |
 | Offline Data Access | 📅 **TBD** | Local storage and sync |

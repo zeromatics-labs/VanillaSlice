@@ -61,6 +61,9 @@ builder.Services.AddServerSideFeatureServices();
 // Dialog Service
 builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.DialogService>();
 
+// Toast Service
+builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.ToastService>();
+
 // Add services to the container.
 var controllersAssembly = new AssemblyPart((typeof(FeaturesRegistrationExt)).Assembly);
 builder.Services.AddControllers().PartManager.ApplicationParts.Add(controllersAssembly);

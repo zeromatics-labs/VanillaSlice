@@ -1,0 +1,51 @@
+@using {{ProjectName}}.Framework.Services
+@inject ToastService ToastService
+@implements IDisposable
+
+@if (ToastService.Toasts.Any())
+{
+    <div style="position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column-reverse;gap:0.625rem;z-index:9999;pointer-events:none;">
+        @foreach (var toast in ToastService.Toasts.ToList())
+        {
+            <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.5rem;box-shadow:0 10px 25px -5px rgba(0,0,0,0.2),0 4px 10px -6px rgba(0,0,0,0.15);min-width:280px;max-width:420px;pointer-events:auto;@GetStyle(toast.Type)">
+                <span style="flex-shrink:0;font-size:1rem;line-height:1.5;">@GetIcon(toast.Type)</span>
+                <span style="flex:1;font-size:0.875rem;line-height:1.45;word-break:break-word;">@toast.Message</span>
+                <button type="button"
+                        @onclick="() => ToastService.Dismiss(toast.Id)"
+                        style="background:none;border:none;cursor:pointer;opacity:0.65;padding:0;line-height:1;color:inherit;flex-shrink:0;margin-top:1px;"
+                        aria-label="Dismiss">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+        => ToastService.OnToastsChanged += OnChanged;
+
+    private async void OnChanged()
+        => await InvokeAsync(StateHasChanged);
+
+    private static string GetStyle(ToastType type) => type switch
+    {
+        ToastType.Success => "background:#166534;color:#fff;",
+        ToastType.Error   => "background:#991b1b;color:#fff;",
+        ToastType.Warning => "background:#92400e;color:#fff;",
+        _                 => "background:#1e3a8a;color:#fff;",
+    };
+
+    private static string GetIcon(ToastType type) => type switch
+    {
+        ToastType.Success => "✓",
+        ToastType.Error   => "✕",
+        ToastType.Warning => "⚠",
+        _                 => "ℹ",
+    };
+
+    public void Dispose()
+        => ToastService.OnToastsChanged -= OnChanged;
+}

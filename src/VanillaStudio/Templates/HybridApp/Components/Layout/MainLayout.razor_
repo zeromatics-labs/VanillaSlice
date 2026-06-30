@@ -217,5 +217,6 @@
 }
 {{/if}}
 
-<!-- Dialog Container - Works with all UI frameworks -->
+<!-- Dialog + Toast Containers - Work with all UI frameworks -->
 <{{ProjectName}}.Framework.Components.DialogContainer />
+<{{ProjectName}}.Framework.Components.ToastContainer />
