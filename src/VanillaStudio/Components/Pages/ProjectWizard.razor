@@ -198,7 +198,7 @@
                                                             </label>
                                                         </div>
                                                         <p class="small text-muted mt-2">
-                                                            Blazor web application with server and optional client projects
+                                                            Blazor Web Application
                                                         </p>
 
                                                         @if (config.IncludeWebProject)
@@ -246,7 +246,7 @@
                                                             </label>
                                                         </div>
                                                         <p class="small text-muted mt-2">
-                                                            Cross-platform mobile app with shared Razor components
+                                                            Via Shared Razor Components
                                                         </p>
                                                     </div>
                                                 </div>
@@ -262,7 +262,7 @@
                                                             </label>
                                                         </div>
                                                         <p class="small text-muted mt-2">
-                                                            Native mobile app with XAML UI and shared backend services using MVVM pattern
+                                                            XAML with MVVM
                                                         </p>
 
                                                         @if (config.IncludeMauiNative)
@@ -319,7 +319,7 @@
                                                             </label>
                                                         </div>
                                                         <p class="small text-muted mt-2 mb-0">
-                                                            Target framework: <code>net10.0</code> LTS
+                                                            <code>net10.0</code> · LTS
                                                         </p>
                                                     </div>
                                                 </div>
@@ -335,7 +335,7 @@
                                                             </label>
                                                         </div>
                                                         <p class="small text-muted mt-2 mb-0">
-                                                            Target framework: <code>net9.0</code> — Standard Term Support
+                                                            <code>net9.0</code> · STS
                                                         </p>
                                                     </div>
                                                 </div>
@@ -362,8 +362,7 @@
                                                                 </label>
                                                             </div>
                                                             <p class="small text-muted mt-2">
-                                                                Popular CSS framework with responsive design and extensive component library.
-                                                                Lightweight and widely supported.
+                                                                Responsive, battle-tested
                                                             </p>
                                                         </div>
                                                     </div>
@@ -378,8 +377,7 @@
                                                                 </label>
                                                             </div>
                                                             <p class="small text-muted mt-2">
-                                                                Utility-first CSS framework for rapid custom design development
-                                                                with built-in responsive and dark mode support.
+                                                                Utility-first styling
                                                             </p>
                                                         </div>
                                                     </div>
@@ -394,8 +392,7 @@
                                                                 </label>
                                                             </div>
                                                             <p class="small text-muted mt-2">
-                                                                Microsoft's design system with modern, accessible components.
-                                                                Perfect for enterprise applications.
+                                                                Microsoft design system
                                                             </p>
                                                         </div>
                                                     </div>
@@ -410,8 +407,7 @@
                                                                 </label>
                                                             </div>
                                                             <p class="small text-muted mt-2">
-                                                                Material Design components for Blazor applications.
-                                                                Rich component set with theming support.
+                                                                Material Design components
                                                             </p>
                                                         </div>
                                                     </div>
@@ -426,8 +422,7 @@
                                                                 </label>
                                                             </div>
                                                             <p class="small text-muted mt-2">
-                                                                Professional Blazor components with advanced data visualization
-                                                                and form controls.
+                                                                Rich data components
                                                             </p>
                                                         </div>
                                                     </div>
@@ -457,7 +452,7 @@
                                         <label class="form-check-label" for="includeAuth">
                                             <strong>Include Authentication</strong>
                                         </label>
-                                        <div class="form-text">Adds ASP.NET Core Identity with login/register pages</div>
+                                        <div class="form-text">ASP.NET Core Identity</div>
                                     </div>
 
                                     <div class="form-check mb-3">
@@ -465,7 +460,7 @@
                                         <label class="form-check-label" for="includeDb">
                                             <strong>Include Database Support</strong>
                                         </label>
-                                        <div class="form-text">Adds Entity Framework Core with DbContext</div>
+                                        <div class="form-text">EF Core + DbContext</div>
                                     </div>
 
                                     <div class="form-check mb-3">
@@ -473,7 +468,7 @@
                                         <label class="form-check-label" for="includeApi">
                                             <strong>Include API Controllers</strong>
                                         </label>
-                                        <div class="form-text">Generates REST API controllers and client services</div>
+                                        <div class="form-text">REST controllers + typed clients</div>
                                     </div>
 
                                     <div class="form-check mb-3">
@@ -481,7 +476,7 @@
                                         <label class="form-check-label" for="includeSamples">
                                             <strong>Include Sample Components</strong>
                                         </label>
-                                        <div class="form-text">Adds example CRUD components</div>
+                                        <div class="form-text">Example CRUD slices</div>
                                     </div>
                                 </div>
 
@@ -502,7 +497,7 @@
                                         <div class="mb-3">
                                             <label for="connectionName" class="form-label">Connection String Name</label>
                                             <InputText id="connectionName" class="form-control" @bind-Value="config.ConnectionStringName" />
-                                            <div class="form-text">Name for the connection string in appsettings.json</div>
+                                            <div class="form-text">In appsettings.json</div>
                                         </div>
                                     }
 
