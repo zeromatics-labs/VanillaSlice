@@ -1,43 +1,92 @@
-<section class="vs-hero">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <span class="vs-eyebrow">Open Source · MIT · .NET 9</span>
-                <h1 class="vs-hero-title">Vertical Slice + Clean Architecture for .NET — free, open, and yours to keep.</h1>
-                <p class="vs-hero-sub">
-                    VanillaSlice generates complete, end-to-end feature slices for Blazor Web and .NET MAUI.
-                    It is code that generates code — every line is plain C# you own, tweak, and ship.
-                    No runtime dependency, no lock-in, nothing to monetize.
-                </p>
-                <div class="vs-hero-cta">
-                    <a class="btn vs-btn-primary btn-lg" href="/wizard">
-                        <i class="bi bi-magic"></i> Generate Your Project
-                    </a>
-                    <a class="btn vs-btn-ghost btn-lg" href="https://github.com/zero-know/VanillaSlice" target="_blank" rel="noopener">
-                        <i class="bi bi-github"></i> View Source on GitHub
-                    </a>
+@* Dark "code editor" hero. Signature element: the vertical-slice cross-section. *@
+<section class="bg-ink text-paper">
+    <nav class="mx-auto flex max-w-page items-center justify-between px-6 py-5">
+        <a href="/" class="flex items-center gap-2.5 font-display text-lg font-extrabold tracking-tight text-paper">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="4" rx="1" fill="#E2795B" />
+                <rect x="3" y="10" width="18" height="4" rx="1" fill="#5B7D99" />
+                <rect x="3" y="17" width="18" height="4" rx="1" fill="#FFC24B" />
+            </svg>
+            VanillaSlice
+        </a>
+        <div class="flex items-center gap-7">
+            <div class="hidden items-center gap-7 md:flex">
+                <a class="font-mono text-sm text-dim transition-colors hover:text-paper" href="#architecture">architecture</a>
+                <a class="font-mono text-sm text-dim transition-colors hover:text-paper" href="#features">features</a>
+                <a class="font-mono text-sm text-dim transition-colors hover:text-paper" href="#faq">faq</a>
+                <a class="font-mono text-sm text-dim transition-colors hover:text-paper" href="https://github.com/zero-know/VanillaSlice" target="_blank" rel="noopener">github</a>
+            </div>
+            <a class="btn-signal px-4 py-2 text-sm" href="/wizard">Generate</a>
+        </div>
+    </nav>
+
+    <div class="mx-auto grid max-w-page items-center gap-14 px-6 pb-24 pt-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div>
+            <p class="kicker-dim mb-6">// vertical-slice generator &nbsp;·&nbsp; blazor + maui</p>
+            <h1 tabindex="-1" class="font-display text-[2.6rem] font-extrabold leading-[1.03] text-paper outline-none focus:outline-none sm:text-6xl">
+                Generate a full <span class="text-signal">vertical slice</span> of your .NET app.
+            </h1>
+            <p class="mt-7 max-w-lg text-lg leading-relaxed text-dim">
+                VanillaSlice scaffolds the entire slice — UI, contract, domain, and data — as
+                plain C# you own and tweak. It's code that generates code: no runtime dependency,
+                no lock-in, nothing to monetize.
+            </p>
+            <div class="mt-9 flex flex-wrap gap-3">
+                <a href="/wizard" class="btn-signal">
+                    Generate your project
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <a href="https://github.com/zero-know/VanillaSlice" target="_blank" rel="noopener" class="btn-ghost-dark">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" />
+                    </svg>
+                    View source
+                </a>
+            </div>
+            <div class="mt-9 flex flex-wrap items-center gap-x-5 gap-y-2 kicker-dim">
+                <span>100% free</span><span class="text-line">/</span>
+                <span>MIT licensed</span><span class="text-line">/</span>
+                <span>full source</span><span class="text-line">/</span>
+                <span>no lock-in</span>
+            </div>
+        </div>
+
+        @* The Slice — vertical cross-section *@
+        <div class="relative">
+            <p class="kicker-dim mb-3">// one generated feature = one slice</p>
+            <div class="overflow-hidden rounded-lg border border-line shadow-2xl shadow-black/40">
+                <div class="flex items-center gap-2 border-b border-line bg-ink px-4 py-3">
+                    <span class="h-2.5 w-2.5 rounded-full bg-clay"></span>
+                    <span class="h-2.5 w-2.5 rounded-full bg-signal"></span>
+                    <span class="h-2.5 w-2.5 rounded-full bg-steel-400"></span>
+                    <span class="ml-2 font-mono text-xs text-dim">Products / ProductListing</span>
+                </div>
+                <div class="slice-layer border-l-4 border-l-clay">
+                    <span class="text-paper/90">ProductListing.razor</span>
+                    <span class="slice-tag">UI</span>
+                </div>
+                <div class="slice-layer border-l-4 border-l-steel-400">
+                    <span class="text-paper/90">ProductListingViewModel.cs</span>
+                    <span class="slice-tag">state</span>
+                </div>
+                <div class="slice-layer border-l-4 border-l-steel-400">
+                    <span class="text-paper/90">ProductListingClient.cs</span>
+                    <span class="slice-tag">http</span>
+                </div>
+                <div class="slice-layer border-l-4 border-l-steel-400">
+                    <span class="text-paper/90">ProductListingController.cs</span>
+                    <span class="slice-tag">api</span>
+                </div>
+                <div class="slice-layer border-l-4 border-l-signal">
+                    <span class="text-paper">ProductListingService.cs</span>
+                    <span class="slice-tag text-signal">logic</span>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="vs-code-window" aria-hidden="true">
-                    <div class="vs-code-bar"><span></span><span></span><span></span></div>
-<pre class="vs-code-body"><code>Products/                         # one self-contained slice
-├─ ProductListing/
-│  ├─ ProductListing.razor        # UI
-│  ├─ ProductListingViewModel.cs
-│  ├─ ProductListingClient.cs     # typed HttpClient
-│  ├─ ProductListingController.cs # REST endpoint
-│  └─ ProductListingService.cs    # business logic + queries
-└─ ProductForm/
-   ├─ ProductForm.razor
-   ├─ ProductFormViewModel.cs
-   ├─ ProductFormClient.cs
-   ├─ ProductFormController.cs
-   └─ ProductFormService.cs
-
-# DI, routing, endpoints — all pre-wired.
-# Add fields, implement queries. Done.</code></pre>
-                </div>
+            <div class="mt-3 flex items-center justify-between kicker-dim">
+                <span>UI → contract → domain → data</span>
+                <span class="text-signal">owned end-to-end</span>
             </div>
         </div>
     </div>

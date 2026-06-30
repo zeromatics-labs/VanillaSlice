@@ -1,6 +1,15 @@
-<details class="vs-faq-item">
-    <summary class="vs-faq-q">@Question</summary>
-    <div class="vs-faq-a">@Answer</div>
+@* Native <details> accordion — no JS. Mono "Q" marker carries the structure. *@
+<details class="group border-b border-paper-line py-5">
+    <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+        <span class="flex items-baseline gap-3">
+            <span class="font-mono text-sm text-signal-600">Q</span>
+            <span class="font-display text-lg font-semibold text-ink">@Question</span>
+        </span>
+        <svg class="shrink-0 text-dim-2 transition-transform duration-200 group-open:rotate-45" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+    </summary>
+    <p class="mt-3 pl-7 leading-relaxed text-dim-2">@Answer</p>
 </details>
 
 @code {

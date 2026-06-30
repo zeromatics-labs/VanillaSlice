@@ -365,3 +365,7 @@ appsettings.profiles.json
 appsettings.sampleprofiles.json
 Properties/launchSettings.json
 /Bootstrapper/VanillaSlice.Bootstrapper/.config/dotnet-tools.json
+
+# Playwright / design review artifacts
+.playwright-mcp/
+/*.png

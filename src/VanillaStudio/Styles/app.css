@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-paper text-ink antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display tracking-[-0.02em];
+  }
+  ::selection {
+    @apply bg-signal text-ink;
+  }
+}
+
+@layer components {
+  /* Monospace eyebrow/label — encodes "code" into the page chrome */
+  .kicker {
+    @apply font-mono text-xs uppercase tracking-kicker text-dim-2;
+  }
+  .kicker-dim {
+    @apply font-mono text-xs uppercase tracking-kicker text-dim;
+  }
+
+  /* Buttons */
+  .btn-signal {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-signal px-5 py-3
+           font-semibold text-ink transition-colors hover:bg-signal-600
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal;
+  }
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line
+           px-5 py-3 font-medium text-paper transition-colors hover:border-signal hover:text-signal
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal;
+  }
+  .btn-ghost-light {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-ink/15
+           px-5 py-3 font-medium text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink;
+  }
+
+  /* The Slice — vertical cross-section signature */
+  .slice-layer {
+    @apply relative flex items-center justify-between border-x border-t border-line/80
+           bg-panel px-4 py-3 font-mono text-sm text-paper/90;
+  }
+  .slice-layer:last-child {
+    @apply border-b;
+  }
+  .slice-tag {
+    @apply font-mono text-[0.65rem] uppercase tracking-widest text-dim;
+  }
+}

@@ -29,157 +29,169 @@
     @((MarkupString)$"<script type=\"application/ld+json\">{FaqJsonLd}</script>")
 </HeadContent>
 
-<div class="vs-page">
-
-    <!-- Top bar -->
-    <header class="vs-topbar">
-        <a class="vs-wordmark" href="/"><i class="bi bi-layers-half"></i> VanillaSlice</a>
-        <nav class="vs-topnav">
-            <a href="#architecture">Architecture</a>
-            <a href="#features">Features</a>
-            <a href="#faq">FAQ</a>
-            <a href="@GitHubUrl" target="_blank" rel="noopener">GitHub</a>
-            <a class="btn vs-btn-primary" href="/wizard">Generate Project</a>
-        </nav>
-    </header>
+<div class="font-sans text-ink">
 
     <HeroSection />
 
-    <!-- Trust bar -->
-    <div class="vs-trustbar">
-        <span class="vs-chip"><i class="bi bi-cash-coin"></i> 100% Free</span>
-        <span class="vs-chip"><i class="bi bi-shield-check"></i> MIT Licensed</span>
-        <span class="vs-chip"><i class="bi bi-file-earmark-code"></i> Full Source Included</span>
-        <span class="vs-chip"><i class="bi bi-plug"></i> No Runtime Dependency</span>
-        <span class="vs-chip"><i class="bi bi-lock"></i> Nothing to Monetize, Ever</span>
+    @* Assurance strip *@
+    <div class="border-b border-paper-line bg-paper-2">
+        <div class="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-8 gap-y-2 px-6 py-4 font-mono text-xs uppercase tracking-kicker text-dim-2">
+            <span>100% free</span>
+            <span class="text-paper-line">·</span>
+            <span>MIT licensed</span>
+            <span class="text-paper-line">·</span>
+            <span>full source included</span>
+            <span class="text-paper-line">·</span>
+            <span>no runtime dependency</span>
+            <span class="text-paper-line">·</span>
+            <span>nothing to monetize, ever</span>
+        </div>
     </div>
 
-    <!-- Architecture -->
-    <section id="architecture" class="vs-section">
-        <div class="container">
-            <div class="vs-section-head">
-                <div class="vs-kicker">Why VanillaSlice</div>
-                <h2 class="vs-h2">Clean Architecture, organized as Vertical Slices</h2>
-                <p class="vs-lead">
-                    Instead of spreading one feature across controller, service, and UI folders, each slice owns its
-                    whole vertical: UI → contract → domain logic → data. The result enforces SOLID by design — features
-                    stay independent, easy to test, and safe to change.
+    @* Architecture — asymmetric: intro column + principle cells *@
+    <section id="architecture" class="mx-auto max-w-page px-6 py-24">
+        <div class="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+            <div>
+                <p class="kicker mb-4">// why vertical slices</p>
+                <h2 class="font-display text-4xl font-extrabold leading-[1.08] text-ink">
+                    Clean architecture, organized as vertical slices.
+                </h2>
+                <p class="mt-5 leading-relaxed text-dim-2">
+                    Instead of scattering one feature across controller, service, and UI folders,
+                    each slice owns its whole vertical: UI → contract → domain → data. SOLID by
+                    design — features stay independent, easy to test, and safe to change.
                 </p>
             </div>
-            <div class="row">
-                <FeatureCard Icon="bi-diagram-3-fill" Title="Self-contained slices"
+            <div class="grid gap-5 sm:grid-cols-3">
+                <FeatureCard Tag="structure" Title="Self-contained slices"
                              Body="Every feature ships with its Razor/XAML UI, ViewModel, typed client, controller, and server service — owned end-to-end." />
-                <FeatureCard Icon="bi-shield-lock-fill" Title="SOLID by default"
+                <FeatureCard Tag="principle" Title="SOLID by default"
                              Body="The factory enforces structure through interfaces and safe stubs, so you write domain logic — not plumbing." />
-                <FeatureCard Icon="bi-arrow-repeat" Title="Absorbs .NET evolution"
+                <FeatureCard Tag="longevity" Title="Absorbs .NET evolution"
                              Body="Thin, feature-centric slices keep regressions low and let your codebase grow with the platform and AI co-authoring." />
             </div>
         </div>
     </section>
 
-    <!-- How it works -->
-    <section class="vs-section vs-section-alt">
-        <div class="container">
-            <div class="vs-section-head">
-                <div class="vs-kicker">How it works</div>
-                <h2 class="vs-h2">From idea to a runnable solution in three steps</h2>
-            </div>
-            <div class="row">
-                <StepCard Number="1" Icon="bi-sliders" Title="Configure in the wizard"
+    @* How it works — a real pipeline *@
+    <section class="border-y border-paper-line bg-paper-2">
+        <div class="mx-auto max-w-page px-6 py-24">
+            <p class="kicker mb-4">// pipeline</p>
+            <h2 class="max-w-2xl font-display text-4xl font-extrabold leading-[1.08] text-ink">
+                From idea to a runnable solution in three steps.
+            </h2>
+            <div class="mt-14 grid gap-10 md:grid-cols-3">
+                <StepCard Number="1" Title="Configure in the wizard"
                           Body="Pick your platform (Blazor Web or Web + MAUI), UI framework, database, and auth. No setup, no install." />
-                <StepCard Number="2" Icon="bi-magic" Title="Generate the solution"
+                <StepCard Number="2" Title="Generate the solution"
                           Body="Download a complete, pre-wired solution — projects, DI, routing, endpoints, and sample CRUD slices included." />
-                <StepCard Number="3" Icon="bi-pencil-square" Title="Own & tweak every line"
+                <StepCard Number="3" Title="Own &amp; tweak every line"
                           Body="It's plain C#. Add fields, implement queries, and ship. There's no SDK between you and your code." />
             </div>
         </div>
     </section>
 
-    <!-- Features -->
-    <section id="features" class="vs-section">
-        <div class="container">
-            <div class="vs-section-head">
-                <div class="vs-kicker">What you get</div>
-                <h2 class="vs-h2">Batteries included, your choice of stack</h2>
-            </div>
-            <div class="row">
-                <FeatureCard Icon="bi-window-stack" Title="Blazor Web" Status="Ready" StatusClass="vs-badge-done"
-                             Body="Server-side and WebAssembly rendering with configurable render modes." />
-                <FeatureCard Icon="bi-phone" Title="MAUI Hybrid" Status="Ready" StatusClass="vs-badge-done"
-                             Body="Cross-platform mobile from the same shared Razor components." />
-                <FeatureCard Icon="bi-phone-vibrate" Title="MAUI Native" Status="Ready" StatusClass="vs-badge-done"
-                             Body="Native XAML frontend over the same shared backend slices." />
-                <FeatureCard Icon="bi-palette" Title="UI Frameworks" Status="Ready" StatusClass="vs-badge-done"
-                             Body="Bootstrap 5, Microsoft Fluent UI, and Tailwind CSS implemented out of the box." />
-                <FeatureCard Icon="bi-database-fill" Title="Database & EF Core" Status="Ready" StatusClass="vs-badge-done"
-                             Body="SQL Server with Entity Framework Core — migrations, seeding, and the repository pattern." />
-                <FeatureCard Icon="bi-shield-lock" Title="Auth & Security" Status="Ready" StatusClass="vs-badge-done"
-                             Body="ASP.NET Core Identity, authorization policies, and JWT token support." />
-            </div>
+    @* Features — spec-sheet grid *@
+    <section id="features" class="mx-auto max-w-page px-6 py-24">
+        <p class="kicker mb-4">// what you get</p>
+        <h2 class="max-w-2xl font-display text-4xl font-extrabold leading-[1.08] text-ink">
+            Batteries included, your choice of stack.
+        </h2>
+        <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard Tag="platform" Title="Blazor Web" Status="ready"
+                         Body="Server-side and WebAssembly rendering with configurable render modes." />
+            <FeatureCard Tag="platform" Title="MAUI Hybrid" Status="ready"
+                         Body="Cross-platform mobile from the same shared Razor components." />
+            <FeatureCard Tag="platform" Title="MAUI Native" Status="ready"
+                         Body="Native XAML frontend over the same shared backend slices." />
+            <FeatureCard Tag="ui" Title="UI Frameworks" Status="ready"
+                         Body="Bootstrap 5, Microsoft Fluent UI, and Tailwind CSS implemented out of the box." />
+            <FeatureCard Tag="data" Title="Database & EF Core" Status="ready"
+                         Body="SQL Server with Entity Framework Core — migrations, seeding, and the repository pattern." />
+            <FeatureCard Tag="security" Title="Auth & Security" Status="ready"
+                         Body="ASP.NET Core Identity, authorization policies, and JWT token support." />
         </div>
     </section>
 
-    <!-- Confidence -->
-    <section class="vs-section">
-        <div class="container">
-            <div class="vs-confidence">
-                <div class="vs-section-head" style="margin-bottom:1rem;">
-                    <h2 class="vs-h2">It's code that generates code</h2>
-                    <p class="vs-lead">VanillaSlice writes a starting point and then gets out of your way. There is nothing to lock you in — and nothing we could ever charge you for.</p>
-                </div>
-                <ul class="vs-confidence-list">
-                    <li><i class="bi bi-check-circle-fill"></i> No runtime SDK, package, or service dependency — the generated code is fully standalone.</li>
-                    <li><i class="bi bi-check-circle-fill"></i> MIT licensed, full source on GitHub — fork it, audit it, change anything.</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Use the generated code commercially with zero obligations.</li>
-                    <li><i class="bi bi-check-circle-fill"></i> No accounts, no telemetry paywall, no "pro tier" — and no plan to add one.</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ -->
-    <section id="faq" class="vs-section vs-section-alt">
-        <div class="container">
-            <div class="vs-section-head">
-                <div class="vs-kicker">FAQ</div>
-                <h2 class="vs-h2">Questions, answered</h2>
-            </div>
-            <div class="vs-faq">
-                @foreach (var f in Faqs)
+    @* Confidence — bold typographic statement on ink *@
+    <section class="bg-ink text-paper">
+        <div class="mx-auto max-w-page px-6 py-24">
+            <p class="kicker-dim mb-5">// the promise</p>
+            <h2 class="max-w-3xl font-display text-4xl font-extrabold leading-[1.06] text-paper sm:text-5xl">
+                It's code that generates code — then <span class="text-signal">gets out of your way.</span>
+            </h2>
+            <div class="mt-14 grid gap-px border border-line bg-line sm:grid-cols-2">
+                @foreach (var (n, text) in Promises)
                 {
-                    <FaqItem Question="@f.Question" Answer="@f.Answer" />
+                    <div class="flex gap-4 bg-ink p-7">
+                        <span class="font-mono text-sm text-signal-600">@n</span>
+                        <p class="leading-relaxed text-dim">@text</p>
+                    </div>
                 }
             </div>
         </div>
     </section>
 
-    <!-- Final CTA -->
-    <section class="vs-finalcta">
-        <div class="container">
-            <h2 class="vs-h2">Generate your project now</h2>
-            <p class="vs-lead mb-4">Free, in your browser, no sign-up. You'll have a runnable solution in minutes.</p>
-            <a class="btn vs-btn-primary btn-lg" href="/wizard"><i class="bi bi-magic"></i> Start the Wizard</a>
+    @* FAQ *@
+    <section id="faq" class="mx-auto max-w-3xl px-6 py-24">
+        <p class="kicker mb-4">// faq</p>
+        <h2 class="font-display text-4xl font-extrabold text-ink">Questions, answered.</h2>
+        <div class="mt-10 border-t border-paper-line">
+            @foreach (var f in Faqs)
+            {
+                <FaqItem Question="@f.Question" Answer="@f.Answer" />
+            }
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="vs-footer">
-        <div class="container text-center">
-            <div class="vs-wordmark justify-content-center"><i class="bi bi-layers-half"></i> VanillaSlice</div>
-            <div class="vs-footer-links">
-                <a href="@GitHubUrl" target="_blank" rel="noopener">GitHub</a>
-                <a href="@($"{GitHubUrl}/releases")" target="_blank" rel="noopener">Releases</a>
-                <a href="@($"{GitHubUrl}/blob/main/LICENSE")" target="_blank" rel="noopener">MIT License</a>
-                <a href="/wizard">Generate Project</a>
+    @* Final CTA + footer on ink *@
+    <section class="bg-ink text-paper">
+        <div class="mx-auto max-w-page px-6 py-24 text-center">
+            <p class="kicker-dim mb-5">// ready</p>
+            <h2 class="font-display text-4xl font-extrabold text-paper sm:text-5xl">Generate your project.</h2>
+            <p class="mx-auto mt-4 max-w-md text-dim">Free, in your browser, no sign-up. You'll have a runnable solution in minutes.</p>
+            <div class="mt-9 flex justify-center">
+                <a href="/wizard" class="btn-signal">
+                    Start the wizard
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
             </div>
-            <p class="small mt-3 mb-0">Free &amp; open-source under the MIT License.</p>
         </div>
-    </footer>
+        <footer class="border-t border-line">
+            <div class="mx-auto flex max-w-page flex-col items-center justify-between gap-5 px-6 py-8 sm:flex-row">
+                <a href="/" class="flex items-center gap-2.5 font-display font-extrabold text-paper">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="4" rx="1" fill="#E2795B" />
+                        <rect x="3" y="10" width="18" height="4" rx="1" fill="#5B7D99" />
+                        <rect x="3" y="17" width="18" height="4" rx="1" fill="#FFC24B" />
+                    </svg>
+                    VanillaSlice
+                </a>
+                <div class="flex flex-wrap items-center gap-6 font-mono text-sm text-dim">
+                    <a class="transition-colors hover:text-paper" href="@GitHubUrl" target="_blank" rel="noopener">github</a>
+                    <a class="transition-colors hover:text-paper" href="@($"{GitHubUrl}/releases")" target="_blank" rel="noopener">releases</a>
+                    <a class="transition-colors hover:text-paper" href="@($"{GitHubUrl}/blob/main/LICENSE")" target="_blank" rel="noopener">license</a>
+                    <a class="transition-colors hover:text-paper" href="/wizard">generate</a>
+                </div>
+                <p class="font-mono text-xs text-dim">MIT · free &amp; open-source</p>
+            </div>
+        </footer>
+    </section>
 
 </div>
 
 @code {
     private const string GitHubUrl = "https://github.com/zero-know/VanillaSlice";
+
+    private static readonly (string n, string text)[] Promises = new[]
+    {
+        ("01", "No runtime SDK, package, or service dependency — the generated code is fully standalone."),
+        ("02", "MIT licensed, full source on GitHub — fork it, audit it, change anything."),
+        ("03", "Use the generated code commercially with zero obligations."),
+        ("04", "No accounts, no telemetry paywall, no \"pro tier\" — and no plan to add one.")
+    };
 
     private record Faq(string Question, string Answer);
 

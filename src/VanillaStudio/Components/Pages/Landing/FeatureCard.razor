@@ -1,21 +1,19 @@
-<div class="col-md-4 mb-4">
-    <div class="vs-feature-card h-100">
-        <div class="vs-feature-icon"><i class="bi @Icon"></i></div>
-        <div class="vs-feature-head">
-            <h3 class="vs-feature-title">@Title</h3>
-            @if (!string.IsNullOrEmpty(Status))
-            {
-                <span class="vs-badge @StatusClass">@Status</span>
-            }
-        </div>
-        <p class="vs-feature-body">@Body</p>
+@* Spec-sheet feature cell — hairline border, mono category + status, no soft shadow. *@
+<div class="group flex flex-col border border-paper-line bg-paper-2 p-6 transition-colors hover:border-ink/40">
+    <div class="mb-5 flex items-center justify-between">
+        <span class="kicker">@Tag</span>
+        @if (!string.IsNullOrEmpty(Status))
+        {
+            <span class="rounded-sm bg-ink/[0.04] px-2 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-dim-2">@Status</span>
+        }
     </div>
+    <h3 class="font-display text-lg font-bold text-ink">@Title</h3>
+    <p class="mt-2 text-sm leading-relaxed text-dim-2">@Body</p>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    [Parameter, EditorRequired] public string Tag { get; set; } = "";
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter, EditorRequired] public string Body { get; set; } = "";
     [Parameter] public string? Status { get; set; }
-    [Parameter] public string? StatusClass { get; set; }
 }

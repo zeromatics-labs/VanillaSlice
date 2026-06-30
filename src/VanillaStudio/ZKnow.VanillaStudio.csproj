@@ -9,7 +9,19 @@
 		<AssemblyTitle>ZKnow.VanillaStudio</AssemblyTitle>
 		<Product>ZKnow.VanillaStudio</Product>
 		<Description>ZKnow.VanillaStudio - Professional Blazor Project Generator</Description>
+		<!-- Keep the npm/Tailwind toolchain out of the SDK's default item globs -->
+		<DefaultItemExcludes>$(DefaultItemExcludes);node_modules\**</DefaultItemExcludes>
 	</PropertyGroup>
+
+	<!--
+	  Build the landing page's Tailwind CSS as part of the .NET build so Visual Studio
+	  and CI produce wwwroot/css/app-tailwind.css automatically. ContinueOnError keeps
+	  the build working on machines without Node (the committed CSS is the fallback).
+	-->
+	<Target Name="BuildTailwindCss" BeforeTargets="BeforeBuild" Condition="Exists('package.json')">
+		<Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('node_modules')" ContinueOnError="true" />
+		<Exec Command="npm run build-css-prod" WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="true" />
+	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.TemplateEngine.Edge" Version="10.0.301" />

@@ -5,12 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="@Assets["css/app.css"]" />
-    <link rel="stylesheet" href="@Assets["css/wizard.css"]" />
-    <link rel="stylesheet" href="@Assets["css/landing.css"]" />
-    <link rel="stylesheet" href="@Assets["ZKnow.VanillaStudio.styles.css"]" />
+    @if (IsLanding)
+    {
+        @* Landing page (/) is a Tailwind-only surface — no Bootstrap, so its reset is clean. *@
+        <link rel="stylesheet" href="@Assets["css/app-tailwind.css"]" />
+    }
+    else
+    {
+        @* Wizard and all other routes keep Bootstrap. *@
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+        <link rel="stylesheet" href="@Assets["css/app.css"]" />
+        <link rel="stylesheet" href="@Assets["css/wizard.css"]" />
+        <link rel="stylesheet" href="@Assets["ZKnow.VanillaStudio.styles.css"]" />
+    }
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet @rendermode="PageRenderMode" />
@@ -29,4 +37,9 @@
 
     private IComponentRenderMode? PageRenderMode =>
         HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+
+    // The marketing landing page at "/" uses a Tailwind-only stylesheet; every other
+    // route keeps the existing Bootstrap-based styling.
+    private bool IsLanding =>
+        string.Equals(HttpContext.Request.Path.Value?.TrimEnd('/'), string.Empty, StringComparison.Ordinal);
 }

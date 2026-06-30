@@ -1,15 +1,12 @@
-<div class="col-md-4 mb-4">
-    <div class="vs-step-card">
-        <div class="vs-step-number">@Number</div>
-        <div class="vs-step-icon"><i class="bi @Icon"></i></div>
-        <h3 class="vs-step-title">@Title</h3>
-        <p class="vs-step-body">@Body</p>
-    </div>
+@* Pipeline step — the top rule is the rail; mono index carries the real sequence. *@
+<div class="relative border-t-2 border-ink pt-5">
+    <div class="font-mono text-sm font-medium text-signal-600">@Number.ToString("D2")</div>
+    <h3 class="mt-3 font-display text-xl font-bold text-ink">@Title</h3>
+    <p class="mt-2 text-sm leading-relaxed text-dim-2">@Body</p>
 </div>
 
 @code {
     [Parameter, EditorRequired] public int Number { get; set; }
-    [Parameter, EditorRequired] public string Icon { get; set; } = "";
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter, EditorRequired] public string Body { get; set; } = "";
 }
