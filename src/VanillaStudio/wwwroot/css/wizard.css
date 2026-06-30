@@ -101,6 +101,19 @@
 }
 
 /* ---------- Forms ---------- */
+/* WCAG AA SC 1.4.11 (non-text contrast): border ≥3:1 against white. #6C7280 = 4.3:1. */
+.wizard-shell .form-control,
+.wizard-shell .form-select {
+    border: 1.5px solid #6C7280;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+/* Placeholder clearly lighter than real input (#14122B) so it reads as a hint, not a value.
+   opacity:1 overrides Firefox's built-in placeholder opacity reduction. */
+.wizard-shell .form-control::placeholder,
+.wizard-shell .form-select::placeholder {
+    color: #9CA3AF;
+    opacity: 1;
+}
 .wizard-shell .form-control:focus, .wizard-shell .form-select:focus {
     border-color: var(--w-signal); box-shadow: 0 0 0 0.2rem rgba(255, 194, 75, 0.25);
 }
