@@ -47,7 +47,17 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+{{#if (eq DatabaseProvider "SqlServer")}}
+    options.UseSqlServer(connectionString);
+{{/if}}
+{{#if (eq DatabaseProvider "PostgreSQL")}}
+    options.UseNpgsql(connectionString);
+{{/if}}
+{{#if (eq DatabaseProvider "SQLite")}}
+    options.UseSqlite(connectionString);
+{{/if}}
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

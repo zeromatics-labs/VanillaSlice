@@ -14,8 +14,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="{{AspNetCoreVersion}}" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="{{AspNetCoreVersion}}" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="{{AspNetCoreVersion}}" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="{{AspNetCoreVersion}}" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="{{AspNetCoreVersion}}" />
+  </ItemGroup>
+
+  <ItemGroup>
+{{#if (eq DatabaseProvider "SqlServer")}}
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="{{AspNetCoreVersion}}" />
+{{/if}}
+{{#if (eq DatabaseProvider "PostgreSQL")}}
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{AspNetCoreVersion}}" />
+{{/if}}
+{{#if (eq DatabaseProvider "SQLite")}}
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="{{AspNetCoreVersion}}" />
+{{/if}}
   </ItemGroup>
 
   <!-- UI Framework Packages -->

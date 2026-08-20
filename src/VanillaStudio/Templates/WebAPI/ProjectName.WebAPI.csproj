@@ -11,6 +11,18 @@
   </ItemGroup>
 
   <ItemGroup>
+{{#if (eq DatabaseProvider "SqlServer")}}
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="{{AspNetCoreVersion}}" />
+{{/if}}
+{{#if (eq DatabaseProvider "PostgreSQL")}}
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{AspNetCoreVersion}}" />
+{{/if}}
+{{#if (eq DatabaseProvider "SQLite")}}
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="{{AspNetCoreVersion}}" />
+{{/if}}
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\{{ProjectName}}.Platform\{{ProjectName}}.Server.DataServices\{{ProjectName}}.Server.DataServices.csproj" />
     <ProjectReference Include="..\{{ProjectName}}.ServiceDefaults\{{ProjectName}}.ServiceDefaults.csproj" />
   </ItemGroup>

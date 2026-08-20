@@ -70,7 +70,8 @@ namespace ZKnow.VanillaStudio.Services
                     ["RenderingMode"] = config.RenderingMode.ToString(),
                     ["IncludeAuthentication"] = config.IncludeAuthentication,
                     ["UserSecretsId"] = Guid.NewGuid().ToString(),
-                    ["UIFramework"] = config.UIFramework.ToString()
+                    ["UIFramework"] = config.UIFramework.ToString(),
+                    ["DatabaseProvider"] = config.DatabaseProvider.ToString()
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(
