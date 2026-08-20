@@ -84,4 +84,26 @@ public class IdentityGenerationTests
         Assert.Contains(".AddIdentityCookies()", program);
         Assert.DoesNotContain("MapIdentityApi", program);
     }
+
+    internal static Dictionary<string, object> WebApiParams() => new()
+    {
+        ["ProjectName"] = "Acme",
+        ["RootNamespace"] = "Acme.WebAPI",
+        ["TargetFramework"] = "net10.0",
+        ["AspNetCoreVersion"] = "10.0.0",
+        ["DatabaseProvider"] = "SqlServer",
+    };
+
+    [Fact]
+    public void WebAPI_Program_exposes_identity_endpoints_for_bearer_clients()
+    {
+        var files = TemplateTestFixture.Generate("WebAPI", WebApiParams());
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains("AddIdentityApiEndpoints<ApplicationUser>()", program);
+        Assert.Contains("AddEntityFrameworkStores<AppDbContext>()", program);
+        Assert.Contains("app.UseAuthentication();", program);
+        Assert.Contains("app.UseAuthorization();", program);
+        Assert.Contains("app.MapGroup(\"/identity\").MapIdentityApi<ApplicationUser>();", program);
+    }
 }

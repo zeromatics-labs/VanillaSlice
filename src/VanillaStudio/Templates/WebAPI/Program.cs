@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using {{ProjectName}}.Server.Data;
 using {{ProjectName}}.Server.DataServices.Extensions;
@@ -22,6 +23,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {{/if}}
 });
 
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddServerSideFeatureServices();
 
 // Add services to the container.
@@ -42,6 +48,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGroup("/identity").MapIdentityApi<ApplicationUser>();
 
 app.MapControllers();
 

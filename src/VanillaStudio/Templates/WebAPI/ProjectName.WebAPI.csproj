@@ -8,6 +8,7 @@
  
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="{{AspNetCoreVersion}}" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="{{AspNetCoreVersion}}" />
   </ItemGroup>
 
   <ItemGroup>
