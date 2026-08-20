@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using {{ProjectName}}.ClientShared;
 using {{ProjectName}}.ClientShared.Extensions;
@@ -38,6 +39,21 @@ namespace {{ProjectName}}.HybridApp
                     client.BaseAddress = new Uri("https://localhost:7202");
     #endif
             });
+
+            // Auth state: AuthorizeView/[Authorize] read AuthenticationStateProvider, which
+            // MauiAuthenticationStateProvider supplies from tokens held by TokenStorage.
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddHttpClient<IdentityClient>(client =>
+            {
+    #if ANDROID
+                    client.BaseAddress = new Uri("https://10.0.2.2:7202");
+    #else
+                    client.BaseAddress = new Uri("https://localhost:7202");
+    #endif
+            });
+            builder.Services.AddScoped<MauiAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(s =>
+                s.GetRequiredService<MauiAuthenticationStateProvider>());
 
     #if DEBUG
                 builder.Services.AddLogging(logging =>

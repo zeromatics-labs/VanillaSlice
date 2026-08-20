@@ -8,6 +8,10 @@
 
  
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="{{AspNetCoreVersion}}" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\{{ProjectName}}.Common\{{ProjectName}}.Common\{{ProjectName}}.Common.csproj" />
     <ProjectReference Include="..\{{ProjectName}}.ServiceContracts\{{ProjectName}}.ServiceContracts.csproj" />
   </ItemGroup>

@@ -388,4 +388,23 @@ public class IdentityGenerationTests
 
         Assert.Contains("SendWithRefreshAsync", http);
     }
+
+    [Theory]
+    [InlineData("HybridApp")]
+    [InlineData("MauiNativeApp")]
+    public void Maui_hosts_register_authentication_services(string template)
+    {
+        var files = TemplateTestFixture.Generate(template, new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+
+        Assert.Contains("AddAuthorizationCore()", mauiProgram);
+        Assert.Contains("MauiAuthenticationStateProvider", mauiProgram);
+        Assert.Contains("AddScoped<AuthenticationStateProvider>", mauiProgram);
+    }
 }
