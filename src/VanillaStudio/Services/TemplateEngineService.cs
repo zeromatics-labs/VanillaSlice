@@ -45,6 +45,14 @@ namespace ZKnow.VanillaStudio.Services
             InitializeTemplateEngine();
         }
 
+        public TemplateEngineService(ILogger<TemplateEngineService> logger, string templatesBasePath)
+        {
+            _logger = logger;
+            _templatesBasePath = templatesBasePath;
+            _logger.LogInformation("📁 Templates base path (explicit): {TemplatesPath}", _templatesBasePath);
+            InitializeTemplateEngine();
+        }
+
         private string? FindSourceDirectory(string startPath)
         {
             var current = new DirectoryInfo(startPath);
@@ -94,7 +102,8 @@ namespace ZKnow.VanillaStudio.Services
         public async Task<List<GeneratedFile>> GenerateFromTemplateAsync(
             string templateName,
             Dictionary<string, object> parameters,
-            string outputBasePath = "")
+            string outputBasePath = "",
+            Func<string, bool>? includeFile = null)
         {
             try
             {
@@ -108,7 +117,7 @@ namespace ZKnow.VanillaStudio.Services
 
                 // For now, use a simple file-based template processing approach
                 // This will be more reliable than the complex TemplateEngine API
-                var generatedFiles = await ProcessTemplateFilesAsync(templatePath, parameters, outputBasePath);
+                var generatedFiles = await ProcessTemplateFilesAsync(templatePath, parameters, outputBasePath, includeFile);
 
                 _logger.LogInformation("✅ Successfully generated {FileCount} files from template {TemplateName}",
                     generatedFiles.Count, templateName);
@@ -125,13 +134,16 @@ namespace ZKnow.VanillaStudio.Services
         private async Task<List<GeneratedFile>> ProcessTemplateFilesAsync(
             string templatePath,
             Dictionary<string, object> parameters,
-            string outputBasePath)
+            string outputBasePath,
+            Func<string, bool>? includeFile = null)
         {
             var generatedFiles = new List<GeneratedFile>();
 
             // Get all files except the .template.config directory
             var templateFiles = Directory.GetFiles(templatePath, "*", SearchOption.AllDirectories)
                 .Where(f => !f.Contains(".template.config"))
+                .Where(f => includeFile is null ||
+                            includeFile(Path.GetRelativePath(templatePath, f).Replace('\\', '/')))
                 .ToArray();
 
             foreach (var templateFile in templateFiles)
