@@ -61,10 +61,17 @@ public class IdentityGenerationTests
         Assert.Contains("app.MapAdditionalIdentityEndpoints();", program);
         Assert.DoesNotContain("//app.MapAdditionalIdentityEndpoints();", program);
 
-        // Authentication must be established before antiforgery runs.
-        Assert.True(program.IndexOf("app.UseAuthentication();", StringComparison.Ordinal)
-                  < program.IndexOf("app.UseAntiforgery();", StringComparison.Ordinal),
-            "UseAuthentication must precede UseAntiforgery");
+        // Verify complete middleware chain: Authentication → Authorization → Antiforgery.
+        var authN = program.IndexOf("app.UseAuthentication();", StringComparison.Ordinal);
+        var authZ = program.IndexOf("app.UseAuthorization();", StringComparison.Ordinal);
+        var anti  = program.IndexOf("app.UseAntiforgery();", StringComparison.Ordinal);
+
+        Assert.True(authN >= 0 && authZ >= 0 && anti >= 0,
+            "all three middleware calls must be present");
+        Assert.True(authN < authZ,
+            "UseAuthentication must precede UseAuthorization");
+        Assert.True(authZ < anti,
+            "UseAuthorization must precede UseAntiforgery");
     }
 
     [Fact]
