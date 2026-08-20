@@ -446,4 +446,133 @@ public class IdentityGenerationTests
         // Still called elsewhere in the method, on the real-rejection (non-success status) path.
         Assert.Contains("ClearAsync", refreshMethod);
     }
+
+    // Ruling W (task 11 correction): these screens must live in HybridApp, not RazorLibrary.
+    // RazorLibrary is loaded into WebPortal via AddAdditionalAssemblies (Program.cs:120-122),
+    // and Blazor route matching is case-insensitive, so /account/login here would collide with
+    // WebPortal's own /Account/Login scaffold page and throw an ambiguous-route exception.
+    // HybridApp's Routes.razor_ uses AppAssembly="@typeof(MauiProgram).Assembly", so pages here
+    // are routable only in the Hybrid app and invisible to WebPortal.
+    [Theory]
+    [InlineData("Components/Pages/Account/Login.razor")]
+    [InlineData("Components/Pages/Account/Register.razor")]
+    [InlineData("Components/Pages/Account/Logout.razor")]
+    [InlineData("Components/Pages/Account/ForgotPassword.razor")]
+    public void HybridApp_provides_the_account_screens(string expectedPath)
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        Assert.True(TemplateTestFixture.HasFile(files, expectedPath));
+    }
+
+    [Fact]
+    public void Hybrid_login_screen_uses_the_maui_state_provider()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var login = TemplateTestFixture.FileContent(files, "Components/Pages/Account/Login.razor");
+        Assert.Contains("MauiAuthenticationStateProvider", login);
+        Assert.Contains("@page \"/account/login\"", login);
+    }
+
+    [Fact]
+    public void Hybrid_register_screen_does_not_sign_in_on_success()
+    {
+        // RequireConfirmedAccount is true (WebAPI Program.cs), so a successful registration
+        // must show a "check your email" state rather than navigating home or calling login.
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var register = TemplateTestFixture.FileContent(files, "Components/Pages/Account/Register.razor");
+        Assert.Contains("@page \"/account/register\"", register);
+        Assert.Contains("RegisterAsync", register);
+        Assert.DoesNotContain("LogInAsync", register);
+        Assert.DoesNotContain("NavigateTo(\"\")", register);
+    }
+
+    [Fact]
+    public void Hybrid_forgot_password_screen_never_reveals_account_existence()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var forgot = TemplateTestFixture.FileContent(files, "Components/Pages/Account/ForgotPassword.razor");
+        Assert.Contains("@page \"/account/forgot-password\"", forgot);
+        Assert.Contains("ForgotPasswordAsync", forgot);
+        // The confirmation branch must not be gated on the call's success/failure result.
+        Assert.DoesNotContain("if (result.Succeeded)", forgot);
+    }
+
+    [Fact]
+    public void Hybrid_logout_screen_signs_out_and_redirects_to_login()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var logout = TemplateTestFixture.FileContent(files, "Components/Pages/Account/Logout.razor");
+        Assert.Contains("@page \"/account/logout\"", logout);
+        Assert.Contains("LogOutAsync", logout);
+        Assert.Contains("/account/login", logout);
+    }
+
+    [Theory]
+    [InlineData("Bootstrap")]
+    [InlineData("FluentUI")]
+    [InlineData("MudBlazor")]
+    [InlineData("Radzen")]
+    [InlineData("TailwindCSS")]
+    public void Hybrid_account_screens_generate_for_every_UI_framework(string uiFramework)
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = uiFramework,
+        });
+
+        Assert.True(TemplateTestFixture.HasFile(files, "Components/Pages/Account/Login.razor"));
+        Assert.True(TemplateTestFixture.HasFile(files, "Components/Pages/Account/Register.razor"));
+        Assert.True(TemplateTestFixture.HasFile(files, "Components/Pages/Account/Logout.razor"));
+        Assert.True(TemplateTestFixture.HasFile(files, "Components/Pages/Account/ForgotPassword.razor"));
+    }
+
+    [Fact]
+    public void Hybrid_account_screens_are_not_generated_under_RazorLibrary()
+    {
+        // The screens must be invisible to WebPortal, which loads RazorLibrary via
+        // AddAdditionalAssemblies. Confirms the corrected file location took effect.
+        var files = TemplateTestFixture.Generate("RazorLibrary", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        Assert.False(TemplateTestFixture.HasFile(files, "Account/Login.razor"));
+        Assert.False(TemplateTestFixture.HasFile(files, "Account/Register.razor"));
+        Assert.False(TemplateTestFixture.HasFile(files, "Account/Logout.razor"));
+        Assert.False(TemplateTestFixture.HasFile(files, "Account/ForgotPassword.razor"));
+    }
 }

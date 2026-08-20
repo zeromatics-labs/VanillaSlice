@@ -1,0 +1,16 @@
+@page "/account/logout"
+@using {{ProjectName}}.ClientShared.Identity
+@inject MauiAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Signing out</PageTitle>
+
+<p>Signing out…</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthStateProvider.LogOutAsync();
+        Navigation.NavigateTo("/account/login", replace: true);
+    }
+}
