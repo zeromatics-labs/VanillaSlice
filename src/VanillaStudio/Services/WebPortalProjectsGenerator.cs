@@ -14,21 +14,21 @@ namespace ZKnow.VanillaStudio.Services
         }
 
         /// <summary>
-    /// Decides which template files belong in the generated WebPortal project.
-    /// The path is template-relative with forward slashes, before placeholder substitution.
-    /// </summary>
-    public static Func<string, bool> IncludeFileFor(ProjectConfiguration config) => path =>
-    {
-        if (!config.IncludeAuthentication &&
-            path.StartsWith("Components/Account/", StringComparison.OrdinalIgnoreCase))
+        /// Decides which template files belong in the generated WebPortal project.
+        /// The path is template-relative with forward slashes, before placeholder substitution.
+        /// </summary>
+        public static Func<string, bool> IncludeFileFor(ProjectConfiguration config) => path =>
         {
-            return false;
-        }
+            if (!config.IncludeAuthentication &&
+                path.StartsWith("Components/Account/", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
 
-        return true;
-    };
+            return true;
+        };
 
-    public async Task<List<GeneratedFile>> GenerateAllWebPortalProjectsAsync(ProjectConfiguration config)
+        public async Task<List<GeneratedFile>> GenerateAllWebPortalProjectsAsync(ProjectConfiguration config)
         {
             var files = new List<GeneratedFile>();
 
