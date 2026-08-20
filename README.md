@@ -56,7 +56,7 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 | Radzen Components | 🔄 **In Progress** | Rich UI component library |
 | Tailwind CSS | ✅ **Complete**  | Utility-first CSS integration |
 | **Services & Features** |
-| Authentication | ✅ **Complete** | Identity across Web, Hybrid, and Native — register, confirm, sign in, refresh, sign out |
+| Authentication | ✅ **Complete** | ASP.NET Core Identity — register, confirm, sign in, refresh, sign out. Web build verified by automated smoke test (Bootstrap + Tailwind). MAUI Hybrid/Native implemented; device verification pending. |
 | Database Integration | ✅ **Complete** | EF Core with multiple providers |
 | Dialog Services | ✅ **Complete** | DialogService + DialogContainer generated in Framework project |
 | Notification Services | ✅ **Complete** | ToastService + ToastContainer generated in Framework project; ShowSuccess/ShowError/ShowWarning/ShowInfo API |
