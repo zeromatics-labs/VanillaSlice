@@ -23,7 +23,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {{/if}}
 });
 
-builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+    })
     .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization();

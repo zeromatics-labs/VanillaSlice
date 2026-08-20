@@ -100,7 +100,8 @@ public class IdentityGenerationTests
         var files = TemplateTestFixture.Generate("WebAPI", WebApiParams());
         var program = TemplateTestFixture.FileContent(files, "Program.cs");
 
-        Assert.Contains("AddIdentityApiEndpoints<ApplicationUser>()", program);
+        Assert.Contains("AddIdentityApiEndpoints<ApplicationUser>(", program);
+        Assert.Contains("options.SignIn.RequireConfirmedAccount = true;", program);
         Assert.Contains("AddEntityFrameworkStores<AppDbContext>()", program);
         Assert.Contains("app.UseAuthentication();", program);
         Assert.Contains("app.UseAuthorization();", program);
