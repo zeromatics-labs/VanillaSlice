@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Xunit;
 using ZKnow.VanillaStudio.Models;
 
@@ -65,9 +64,12 @@ public class GeneratedProjectSmokeTests
                 $"No .sln file was generated in {outputDirectory}. Contents:{Environment.NewLine}" +
                 string.Join(Environment.NewLine, Directory.GetFiles(outputDirectory, "*", SearchOption.AllDirectories)));
 
-            var (exitCode, output) = await RunAsync(
+            // --nodereuse:false belt-and-braces MSBUILDDISABLENODEREUSE (see DotNetProcessRunner):
+            // it stops this specific build from leaving a fresh node behind for the next one to
+            // trip over, on top of refusing to reuse a stale one.
+            var (exitCode, output) = await DotNetProcessRunner.RunAsync(
                 "dotnet",
-                $"build \"{solutionFile}\" -warnaserror:CS0246",
+                $"build \"{solutionFile}\" -warnaserror:CS0246 --nodereuse:false",
                 outputDirectory);
 
             if (exitCode != 0)
@@ -85,27 +87,5 @@ public class GeneratedProjectSmokeTests
                 try { Directory.Delete(outputDirectory, recursive: true); } catch { /* best effort */ }
             }
         }
-    }
-
-    private static async Task<(int ExitCode, string Output)> RunAsync(
-        string fileName, string arguments, string workingDirectory)
-    {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo(fileName, arguments)
-            {
-                WorkingDirectory = workingDirectory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            },
-        };
-
-        process.Start();
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-
-        return (process.ExitCode, stdout + Environment.NewLine + stderr);
     }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Xunit;
 using ZKnow.VanillaStudio.Models;
 
@@ -77,7 +76,8 @@ public class AccountPageCompileTests
 
             var probeDir = WriteProbeProject(outputDirectory, config);
 
-            var (restoreExit, restoreOutput) = await RunAsync("dotnet", $"restore \"{probeDir}\"", probeDir);
+            var (restoreExit, restoreOutput) = await DotNetProcessRunner.RunAsync(
+                "dotnet", $"restore \"{probeDir}\"", probeDir);
             if (restoreExit != 0)
             {
                 keepForInspection = true;
@@ -85,8 +85,11 @@ public class AccountPageCompileTests
             Assert.True(restoreExit == 0,
                 $"Account pages ({uiFramework}) probe project failed to restore. Output left at: {outputDirectory}{Environment.NewLine}{restoreOutput}");
 
-            var (buildExit, buildOutput) = await RunAsync(
-                "dotnet", $"build \"{probeDir}\" --no-restore -warnaserror:CS0246", probeDir);
+            // --nodereuse:false belt-and-braces MSBUILDDISABLENODEREUSE (see DotNetProcessRunner):
+            // it stops this specific build from leaving a fresh node behind for the next one to
+            // trip over, on top of refusing to reuse a stale one.
+            var (buildExit, buildOutput) = await DotNetProcessRunner.RunAsync(
+                "dotnet", $"build \"{probeDir}\" --no-restore -warnaserror:CS0246 --nodereuse:false", probeDir);
 
             if (buildExit != 0)
             {
@@ -169,27 +172,5 @@ public class AccountPageCompileTests
             """);
 
         return probeDir;
-    }
-
-    private static async Task<(int ExitCode, string Output)> RunAsync(
-        string fileName, string arguments, string workingDirectory)
-    {
-        using var process = new Process
-        {
-            StartInfo = new ProcessStartInfo(fileName, arguments)
-            {
-                WorkingDirectory = workingDirectory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            },
-        };
-
-        process.Start();
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-
-        return (process.ExitCode, stdout + Environment.NewLine + stderr);
     }
 }
