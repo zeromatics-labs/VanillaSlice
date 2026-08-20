@@ -25,6 +25,7 @@ namespace ZKnow.VanillaStudio.Services
                     ["ProjectName"] = config.ProjectName,
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
+                    ["NpgsqlVersion"] = config.NpgsqlVersion,
                     ["IncludeAuthentication"] = config.IncludeAuthentication,
                     ["IncludeSampleData"] = config.IncludeSampleData,
                     ["DatabaseProvider"] = config.DatabaseProvider.ToString(),

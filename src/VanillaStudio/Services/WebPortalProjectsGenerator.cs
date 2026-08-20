@@ -67,6 +67,7 @@ namespace ZKnow.VanillaStudio.Services
                     ["RootNamespace"] = $"{config.ProjectName}.WebPortal",
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
+                    ["NpgsqlVersion"] = config.NpgsqlVersion,
                     ["RenderingMode"] = config.RenderingMode.ToString(),
                     ["IncludeAuthentication"] = config.IncludeAuthentication,
                     ["UserSecretsId"] = Guid.NewGuid().ToString(),

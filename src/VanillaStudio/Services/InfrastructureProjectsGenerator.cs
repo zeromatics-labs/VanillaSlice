@@ -55,6 +55,7 @@ namespace ZKnow.VanillaStudio.Services
                     ["RootNamespace"] = $"{config.ProjectName}.WebAPI",
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
+                    ["NpgsqlVersion"] = config.NpgsqlVersion,
                     ["DatabaseProvider"] = config.DatabaseProvider.ToString(),
                     ["EmailProvider"] = config.EmailProvider.ToString(),
                     ["EmailFromAddress"] = config.EmailFromAddress

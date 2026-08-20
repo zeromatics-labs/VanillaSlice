@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="{{AspNetCoreVersion}}" />
 {{/if}}
 {{#if (eq DatabaseProvider "PostgreSQL")}}
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{AspNetCoreVersion}}" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="{{NpgsqlVersion}}" />
 {{/if}}
 {{#if (eq DatabaseProvider "SQLite")}}
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="{{AspNetCoreVersion}}" />

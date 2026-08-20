@@ -16,6 +16,7 @@ public class IdentityGenerationTests
         ["RootNamespace"] = "Acme.WebPortal",
         ["TargetFramework"] = "net10.0",
         ["AspNetCoreVersion"] = "10.0.0",
+        ["NpgsqlVersion"] = "10.0.0",
         ["RenderingMode"] = "Auto",
         ["IncludeAuthentication"] = includeAuth,
         ["UserSecretsId"] = "test-secrets-id",

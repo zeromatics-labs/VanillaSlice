@@ -68,6 +68,8 @@ namespace ZKnow.VanillaStudio.Models
         // Computed version strings derived from DotNetVersion
         public string TargetFramework       => DotNetVersion == DotNetVersion.Net9 ? "net9.0"  : "net10.0";
         public string AspNetCoreVersion     => DotNetVersion == DotNetVersion.Net9 ? "9.0.8"   : "10.0.0";
+        // Npgsql does not track ASP.NET Core patch numbers; 9.0.8 was never published for net9.0.
+        public string NpgsqlVersion         => DotNetVersion == DotNetVersion.Net9 ? "9.0.4"   : "10.0.0";
         public string MauiVersion           => DotNetVersion == DotNetVersion.Net9 ? "9.0.10"  : "10.0.0";
         public string MauiTargetFrameworks  => DotNetVersion == DotNetVersion.Net9
             ? "net9.0-android;net9.0-ios;net9.0-maccatalyst"

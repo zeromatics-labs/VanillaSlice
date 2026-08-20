@@ -37,8 +37,9 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 
 ### ✅ **Authentication & Security**
 - **Identity Integration** - ✅ **Fully Implemented**
-- **Authorization Policies** - ✅ **Fully Implemented**
+- **Authorization** - ✅ **Fully Implemented** — `[Authorize]` attributes and `AddAuthorization()`; no named policies are scaffolded
 - **Bearer Token Authentication** - ✅ **Fully Implemented** — ASP.NET Core Identity tokens via `MapIdentityApi` (opaque Identity tokens, not JWTs)
+- **Passkeys** - ⚠️ **Scaffolded, not enabled** — the passkey pages compile, but the generated project does not opt into `IdentitySchemaVersions.Version3` and ships no passkey migration, so using them fails at runtime until that's added by hand
 
 ## Implementation Status Matrix
 

@@ -10,6 +10,7 @@ public class DatabaseProviderTests
         ["RootNamespace"] = "Acme.WebAPI",
         ["TargetFramework"] = "net10.0",
         ["AspNetCoreVersion"] = "10.0.0",
+        ["NpgsqlVersion"] = "10.0.0",
         ["DatabaseProvider"] = databaseProvider,
     };
 
@@ -19,6 +20,7 @@ public class DatabaseProviderTests
         ["RootNamespace"] = "Acme.Server.Data",
         ["TargetFramework"] = "net10.0",
         ["AspNetCoreVersion"] = "10.0.0",
+        ["NpgsqlVersion"] = "10.0.0",
         ["IncludeAuthentication"] = true,
         ["IncludeSampleData"] = true,
         ["DatabaseProvider"] = databaseProvider,
@@ -60,6 +62,32 @@ public class DatabaseProviderTests
         var csproj = TemplateTestFixture.FileContent(files, ".WebPortal.csproj");
 
         Assert.Contains(package, csproj);
+    }
+
+    // C-2 regression: Npgsql does not track ASP.NET Core patch numbers, so the PostgreSQL
+    // package must be versioned independently ({{NpgsqlVersion}}), not from {{AspNetCoreVersion}}.
+    // 9.0.8 (the AspNetCoreVersion for net9.0) was never published for Npgsql and fails restore.
+    [Theory]
+    [InlineData("WebPortal", ".WebPortal.csproj")]
+    [InlineData("WebAPI", ".WebAPI.csproj")]
+    [InlineData("ServerData", ".Server.Data.csproj")]
+    public void PostgreSQL_csproj_uses_a_plausible_Npgsql_version_and_not_the_raw_placeholder(
+        string templateName, string csprojSuffix)
+    {
+        var parameters = templateName switch
+        {
+            "WebPortal" => IdentityGenerationTests.WebPortalParams(databaseProvider: "PostgreSQL"),
+            "WebAPI" => WebApiParams(databaseProvider: "PostgreSQL"),
+            _ => ServerDataParams(databaseProvider: "PostgreSQL"),
+        };
+
+        var files = TemplateTestFixture.Generate(templateName, parameters);
+        var csproj = TemplateTestFixture.FileContent(files, csprojSuffix);
+
+        Assert.DoesNotContain("{{NpgsqlVersion}}", csproj);
+        Assert.Matches(
+            "Npgsql\\.EntityFrameworkCore\\.PostgreSQL\" Version=\"\\d+\\.\\d+\\.\\d+\"",
+            csproj);
     }
 
     [Fact]
