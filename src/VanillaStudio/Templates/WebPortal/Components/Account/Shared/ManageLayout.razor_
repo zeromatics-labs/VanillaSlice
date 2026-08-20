@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@layout {{ProjectName}}.WebPortal.Components.Layout.MainLayout
+@layout {{ProjectName}}.WebPortal.Client.Layout.MainLayout
 
 <h1>Manage your account</h1>
 

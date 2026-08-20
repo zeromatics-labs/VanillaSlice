@@ -38,7 +38,7 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 ### ✅ **Authentication & Security**
 - **Identity Integration** - ✅ **Fully Implemented**
 - **Authorization Policies** - ✅ **Fully Implemented**
-- **JWT Token Support** - ✅ **Fully Implemented**
+- **Bearer Token Authentication** - ✅ **Fully Implemented** — ASP.NET Core Identity tokens via `MapIdentityApi` (opaque Identity tokens, not JWTs)
 
 ## Implementation Status Matrix
 
@@ -56,11 +56,13 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 | Radzen Components | 🔄 **In Progress** | Rich UI component library |
 | Tailwind CSS | ✅ **Complete**  | Utility-first CSS integration |
 | **Services & Features** |
-| Authentication | ✅ **Complete** | Identity with JWT support |
+| Authentication | ✅ **Complete** | Identity across Web, Hybrid, and Native — register, confirm, sign in, refresh, sign out |
 | Database Integration | ✅ **Complete** | EF Core with multiple providers |
 | Dialog Services | ✅ **Complete** | DialogService + DialogContainer generated in Framework project |
 | Notification Services | ✅ **Complete** | ToastService + ToastContainer generated in Framework project; ShowSuccess/ShowError/ShowWarning/ShowInfo API |
 | **Advanced Features** |
+| Two-Factor Authentication | ✅ **Complete** | Web only — TOTP with QR and recovery codes |
+| External Logins | 🔄 **In Progress** | Web scaffold present; provider credentials not yet wizard-configurable |
 | Push Notifications | 📅 **TBD** | Mobile and web push support |
 | Offline Data Access | 📅 **TBD** | Local storage and sync |
 | Real-time Chat | 📅 **TBD** | SignalR chat implementation |

@@ -56,10 +56,24 @@ namespace ZKnow.VanillaStudio.Services
             foreach (var file in files)
             {
                 // Always include project file and services
-                if (file.RelativePath.EndsWith(".csproj") || 
+                if (file.RelativePath.EndsWith(".csproj") ||
                     file.RelativePath.Contains("Services/"))
                 {
                     filteredFiles.Add(file);
+                    continue;
+                }
+
+                // The checked-in Migrations/ snapshot is hand-authored against SQL Server
+                // column types (nvarchar, etc.) and calls SqlServerModelBuilderExtensions /
+                // SqlServerPropertyBuilderExtensions, which only exist when the SQL Server
+                // EF provider package is referenced. Shipping it for any other provider is
+                // a compile error, so only include it when SqlServer was selected.
+                if (file.RelativePath.Contains("Migrations/") || file.RelativePath.Contains("Migrations\\"))
+                {
+                    if (config.DatabaseProvider == DatabaseProvider.SqlServer)
+                    {
+                        filteredFiles.Add(file);
+                    }
                     continue;
                 }
 
