@@ -701,4 +701,35 @@ public class IdentityGenerationTests
             Assert.Contains("Routing.RegisterRoute(\"forgot-password\", typeof(ForgotPasswordPage))", shell);
         }
     }
+
+    [Fact]
+    public void Hybrid_router_sends_unauthenticated_users_to_sign_in()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var routes = TemplateTestFixture.FileContent(files, "Components/Routes.razor");
+
+        Assert.Contains("AuthorizeRouteView", routes);
+        Assert.Contains("NotAuthorized", routes);
+    }
+
+    [Fact]
+    public void Sample_listing_requires_authentication_when_auth_is_enabled()
+    {
+        var files = TemplateTestFixture.Generate("RazorLibrary", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+            ["IncludeAuthentication"] = true,
+        });
+
+        var listing = TemplateTestFixture.FileContent(files, "ProductListing.razor");
+        Assert.Contains("@attribute [Authorize]", listing);
+    }
 }

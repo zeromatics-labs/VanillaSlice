@@ -37,6 +37,16 @@ public static class MauiProgram
         builder.Services.AddTransient<Views.Products.ProductListPage>();
         builder.Services.AddTransient<Views.Products.ProductFormPage>();
 
+        // Register the shell through DI (rather than "new"-ing it in App.xaml.cs) so it can
+        // take MauiAuthenticationStateProvider as a constructor parameter.
+        {{#if (eq NavigationType "Tabs")}}
+        builder.Services.AddTransient<AppShellTabs>();
+        {{/if}}
+
+        {{#if (eq NavigationType "Flyout")}}
+        builder.Services.AddTransient<AppShellFlyout>();
+        {{/if}}
+
         // Add Client Services
         builder.Services.AddClientSideFeatureServices();
         builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();

@@ -1,5 +1,12 @@
 <Router AppAssembly="@typeof(MauiProgram).Assembly" AdditionalAssemblies="@([typeof({{ProjectName}}.Razor._Imports).Assembly])">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+            <Authorizing>
+                <p>Authorizing…</p>
+            </Authorizing>
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
     </Found>
 </Router>

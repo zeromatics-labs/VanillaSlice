@@ -142,7 +142,8 @@ namespace ZKnow.VanillaStudio.Services
                     ["RootNamespace"] = $"{config.ProjectName}.Razor",
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
-                    ["UIFramework"] = config.UIFramework.ToString()
+                    ["UIFramework"] = config.UIFramework.ToString(),
+                    ["IncludeAuthentication"] = config.IncludeAuthentication
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(

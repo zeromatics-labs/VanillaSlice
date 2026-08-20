@@ -42,7 +42,11 @@ namespace {{ProjectName}}.HybridApp
 
             // Auth state: AuthorizeView/[Authorize] read AuthenticationStateProvider, which
             // MauiAuthenticationStateProvider supplies from tokens held by TokenStorage.
+            // AddCascadingAuthenticationState supplies the cascading AuthenticationState that
+            // AuthorizeRouteView (Routes.razor_) and AuthorizeView need — without it every
+            // AuthorizeRouteView renders as unauthorised regardless of sign-in state.
             builder.Services.AddAuthorizationCore();
+            builder.Services.AddCascadingAuthenticationState();
             builder.Services.AddHttpClient<IdentityClient>(client =>
             {
     #if ANDROID

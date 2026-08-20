@@ -2,8 +2,13 @@
 @using {{ProjectName}}.ServiceContracts.Features.Products
 @using {{ProjectName}}.ClientShared.Features.Products
 @page "/products"
-@inherits ListingBase<ProductListingViewModel, ProductListingBusinessModel, 
+@inherits ListingBase<ProductListingViewModel, ProductListingBusinessModel,
                         ProductFilterViewModel, ProductFilterBusinessModel, IProductListingDataService>
+
+{{#if (eq IncludeAuthentication "True")}}
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+{{/if}}
 
 {{#if (eq UIFramework "Bootstrap")}}
 <div class="container-fluid">
