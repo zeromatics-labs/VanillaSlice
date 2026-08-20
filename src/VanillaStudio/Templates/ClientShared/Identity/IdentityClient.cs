@@ -16,12 +16,21 @@ public record UserInfoDto(string Email, bool IsEmailConfirmed);
 /// These are ASP.NET Core Identity's own opaque tokens, not JWTs. The login
 /// endpoint returns tokens when useCookies is omitted, which is what native
 /// clients need.
+///
+/// Ruling V: transport failure (offline device, timeout) is a failed result, never an
+/// exception. Every method below catches HttpRequestException/TaskCanceledException around
+/// its HTTP call(s) and returns the method's existing failure shape, the same way it already
+/// handles a non-success status code — being offline is a normal state on a mobile app, not
+/// an exceptional one, and an uncaught exception here would crash the caller instead of
+/// surfacing "can't reach the server".
 /// </summary>
 public sealed class IdentityClient
 {
     // Derived from HttpClientHelper.IdentityBasePath rather than re-typing "/identity" here,
     // so the group prefix set in Task 5 has exactly one source of truth.
     private const string Base = HttpClientHelper.IdentityBasePath;
+
+    private const string OfflineError = "Could not reach the server. Check your connection and try again.";
 
     private readonly HttpClient _httpClient;
     private readonly TokenStorage _tokens;
@@ -34,33 +43,54 @@ public sealed class IdentityClient
 
     public async Task<IdentityResultDto> RegisterAsync(string email, string password)
     {
-        var response = await _httpClient.PostAsJsonAsync($"{Base}/register", new { email, password });
-        return response.IsSuccessStatusCode
-            ? new IdentityResultDto(true, null)
-            : new IdentityResultDto(false, await DescribeFailureAsync(response));
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{Base}/register", new { email, password });
+            return response.IsSuccessStatusCode
+                ? new IdentityResultDto(true, null)
+                : new IdentityResultDto(false, await DescribeFailureAsync(response));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return new IdentityResultDto(false, OfflineError);
+        }
     }
 
     public async Task<IdentityResultDto> LoginAsync(string email, string password)
     {
-        // No useCookies parameter: bearer mode.
-        var response = await _httpClient.PostAsJsonAsync($"{Base}/login", new { email, password });
-        if (!response.IsSuccessStatusCode)
-            return new IdentityResultDto(false, await DescribeFailureAsync(response));
+        try
+        {
+            // No useCookies parameter: bearer mode.
+            var response = await _httpClient.PostAsJsonAsync($"{Base}/login", new { email, password });
+            if (!response.IsSuccessStatusCode)
+                return new IdentityResultDto(false, await DescribeFailureAsync(response));
 
-        var payload = await response.Content.ReadFromJsonAsync<AccessTokenPayload>();
-        if (payload is null)
-            return new IdentityResultDto(false, "Login succeeded but no tokens were returned.");
+            var payload = await response.Content.ReadFromJsonAsync<AccessTokenPayload>();
+            if (payload is null)
+                return new IdentityResultDto(false, "Login succeeded but no tokens were returned.");
 
-        await _tokens.SaveAsync(payload.AccessToken, payload.RefreshToken, payload.ExpiresIn);
-        return new IdentityResultDto(true, null);
+            await _tokens.SaveAsync(payload.AccessToken, payload.RefreshToken, payload.ExpiresIn);
+            return new IdentityResultDto(true, null);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return new IdentityResultDto(false, OfflineError);
+        }
     }
 
     public async Task<IdentityResultDto> ForgotPasswordAsync(string email)
     {
-        var response = await _httpClient.PostAsJsonAsync($"{Base}/forgotPassword", new { email });
-        return response.IsSuccessStatusCode
-            ? new IdentityResultDto(true, null)
-            : new IdentityResultDto(false, await DescribeFailureAsync(response));
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{Base}/forgotPassword", new { email });
+            return response.IsSuccessStatusCode
+                ? new IdentityResultDto(true, null)
+                : new IdentityResultDto(false, await DescribeFailureAsync(response));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return new IdentityResultDto(false, OfflineError);
+        }
     }
 
     /// <summary>Exchanges the stored refresh token for a new access token. False means re-login is required.</summary>
@@ -69,7 +99,19 @@ public sealed class IdentityClient
         var refreshToken = await _tokens.GetRefreshTokenAsync();
         if (string.IsNullOrEmpty(refreshToken)) return false;
 
-        var response = await _httpClient.PostAsJsonAsync($"{Base}/refresh", new { refreshToken });
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.PostAsJsonAsync($"{Base}/refresh", new { refreshToken });
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            // A transport failure is not proof the refresh token is invalid — do not clear it
+            // here, or a network blip would silently sign the user out. Only an actual
+            // rejection by the server (below) clears stored tokens.
+            return false;
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             await _tokens.ClearAsync();
@@ -94,7 +136,16 @@ public sealed class IdentityClient
         request.Headers.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-        var response = await _httpClient.SendAsync(request);
+        HttpResponseMessage response;
+        try
+        {
+            response = await _httpClient.SendAsync(request);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return null;
+        }
+
         if (!response.IsSuccessStatusCode) return null;
 
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());

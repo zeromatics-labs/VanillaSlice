@@ -407,4 +407,43 @@ public class IdentityGenerationTests
         Assert.Contains("MauiAuthenticationStateProvider", mauiProgram);
         Assert.Contains("AddScoped<AuthenticationStateProvider>", mauiProgram);
     }
+
+    // Ruling V: transport failure (offline device, timeout) must be a failed result, never an
+    // exception — an uncaught HttpRequestException/TaskCanceledException out of
+    // MauiAuthenticationStateProvider.GetAuthenticationStateAsync would crash the app shell
+    // instead of showing a login screen.
+    [Fact]
+    public void IdentityClient_treats_transport_failure_as_a_failed_result_not_an_exception()
+    {
+        var files = TemplateTestFixture.Generate("ClientShared", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+        });
+
+        var client = TemplateTestFixture.FileContent(files, "Identity/IdentityClient.cs");
+
+        Assert.Contains("catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)", client);
+
+        // Being offline is not proof the refresh token is invalid: RefreshAsync's transport-failure
+        // catch block must not call ClearAsync — only an actual server rejection (elsewhere in the
+        // same method, on a non-success status code) may clear stored tokens.
+        var refreshMethodStart = client.IndexOf("public async Task<bool> RefreshAsync()", StringComparison.Ordinal);
+        Assert.True(refreshMethodStart >= 0, "RefreshAsync method not found.");
+        var refreshMethodEnd = client.IndexOf("\n    public Task LogoutAsync", refreshMethodStart, StringComparison.Ordinal);
+        Assert.True(refreshMethodEnd > refreshMethodStart, "Could not locate end of RefreshAsync method.");
+        var refreshMethod = client[refreshMethodStart..refreshMethodEnd];
+
+        var catchStart = refreshMethod.IndexOf(
+            "catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)", StringComparison.Ordinal);
+        Assert.True(catchStart >= 0, "RefreshAsync must catch transport failures separately from status-code failures.");
+
+        var catchBraceOpen = refreshMethod.IndexOf('{', catchStart);
+        var catchBraceClose = refreshMethod.IndexOf('}', catchBraceOpen);
+        var catchBody = refreshMethod[catchBraceOpen..catchBraceClose];
+
+        Assert.DoesNotContain("ClearAsync", catchBody);
+        // Still called elsewhere in the method, on the real-rejection (non-success status) path.
+        Assert.Contains("ClearAsync", refreshMethod);
+    }
 }
