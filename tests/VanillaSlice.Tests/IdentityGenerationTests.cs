@@ -361,11 +361,16 @@ public class IdentityGenerationTests
 
         var client = TemplateTestFixture.FileContent(files, "Identity/IdentityClient.cs");
 
-        // Must match the group prefix mapped in Task 5.
-        Assert.Contains("/identity/login", client);
-        Assert.Contains("/identity/register", client);
-        Assert.Contains("/identity/refresh", client);
-        Assert.Contains("/identity/manage/info", client);
+        // The prefix must be derived from the shared constant, never re-typed.
+        Assert.Contains("HttpClientHelper.IdentityBasePath", client);
+
+        // Endpoint segments appear literally in the interpolated URLs.
+        Assert.Contains("{Base}/register", client);
+        Assert.Contains("{Base}/login", client);
+        Assert.Contains("{Base}/refresh", client);
+        Assert.Contains("{Base}/forgotPassword", client);
+        Assert.Contains("{Base}/manage/info", client);
+
         // Bearer mode: useCookies must not be set from a native client.
         Assert.DoesNotContain("useCookies=true", client);
     }
