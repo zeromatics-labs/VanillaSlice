@@ -100,6 +100,8 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
@@ -112,6 +114,6 @@ app.MapRazorComponents<App>()
         typeof({{ProjectName}}.Razor._Imports).Assembly]);
 
 // Add additional endpoints required by the Identity /Account Razor components.
-//app.MapAdditionalIdentityEndpoints();
+app.MapAdditionalIdentityEndpoints();
 app.MapControllers();
 app.Run();

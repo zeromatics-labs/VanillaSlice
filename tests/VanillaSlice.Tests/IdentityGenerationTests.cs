@@ -49,4 +49,32 @@ public class IdentityGenerationTests
         Assert.True(predicate("Components/Account/Pages/Login.razor_"));
         Assert.True(predicate("Program.cs"));
     }
+
+    [Fact]
+    public void WebPortal_Program_has_a_complete_auth_pipeline()
+    {
+        var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains("app.UseAuthentication();", program);
+        Assert.Contains("app.UseAuthorization();", program);
+        Assert.Contains("app.MapAdditionalIdentityEndpoints();", program);
+        Assert.DoesNotContain("//app.MapAdditionalIdentityEndpoints();", program);
+
+        // Authentication must be established before antiforgery runs.
+        Assert.True(program.IndexOf("app.UseAuthentication();", StringComparison.Ordinal)
+                  < program.IndexOf("app.UseAntiforgery();", StringComparison.Ordinal),
+            "UseAuthentication must precede UseAntiforgery");
+    }
+
+    [Fact]
+    public void WebPortal_Program_keeps_cookie_registration_and_maps_no_identity_api()
+    {
+        var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        // WebPortal authenticates in-process; MapIdentityApi belongs to WebAPI only.
+        Assert.Contains(".AddIdentityCookies()", program);
+        Assert.DoesNotContain("MapIdentityApi", program);
+    }
 }
