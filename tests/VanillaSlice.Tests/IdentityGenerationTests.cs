@@ -118,6 +118,7 @@ public class IdentityGenerationTests
     [InlineData("Components/Account/Pages/Manage/ChangePassword.razor")]
     [InlineData("Components/Account/Pages/Manage/EnableAuthenticator.razor")]
     [InlineData("Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs")]
+    [InlineData("Components/Account/IdentityNoOpEmailSender.cs")]
     public void WebPortal_generates_the_full_Account_scaffold(string expectedPath)
     {
         var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
