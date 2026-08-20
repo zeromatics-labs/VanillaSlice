@@ -254,4 +254,99 @@ public class IdentityGenerationTests
         var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
         Assert.True(TemplateTestFixture.HasFile(files, "Components/Account/IdentityNoOpEmailSender.cs"));
     }
+
+    internal static Dictionary<string, object> ClientSharedParams() => new()
+    {
+        ["ProjectName"] = "Acme",
+        ["TargetFramework"] = "net10.0",
+    };
+
+    internal static Dictionary<string, object> MauiNativeAppParams() => new()
+    {
+        ["ProjectName"] = "Acme",
+        ["TargetFramework"] = "net10.0",
+    };
+
+    [Fact]
+    public void Dead_TokenHandler_is_gone_from_the_hybrid_app()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        Assert.False(TemplateTestFixture.HasFile(files, "Services/TokenHandler.cs"));
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+        Assert.DoesNotContain("TokenHandler", mauiProgram);
+    }
+
+    // Ruling R (task 8 correction): ClientShared is a plain library referenced by the WASM
+    // WebPortalClient too, so it cannot carry MAUI types like DeviceInfo/DevicePlatform. The
+    // per-platform base address instead lives in each MAUI app's own MauiProgram.cs, resolved
+    // via MAUI's native #if ANDROID multi-targeting rather than a shared HttpClientHelper
+    // runtime switch.
+    [Fact]
+    public void Hybrid_base_address_is_reachable_from_an_android_emulator()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+
+        // localhost is unreachable from the Android emulator; it needs 10.0.2.2.
+        Assert.Contains("#if ANDROID", mauiProgram);
+        Assert.Contains("new Uri(\"https://10.0.2.2:7202\")", mauiProgram);
+        Assert.Contains("new Uri(\"https://localhost:7202\")", mauiProgram);
+    }
+
+    [Fact]
+    public void MauiNativeApp_base_address_is_reachable_from_an_android_emulator()
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", MauiNativeAppParams());
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+
+        Assert.Contains("#if ANDROID", mauiProgram);
+        Assert.Contains("new Uri(\"https://10.0.2.2:7202\")", mauiProgram);
+    }
+
+    [Fact]
+    public void HttpClientHelper_is_generated_from_the_ClientShared_template()
+    {
+        var files = TemplateTestFixture.Generate("ClientShared", ClientSharedParams());
+
+        Assert.True(TemplateTestFixture.HasFile(files, "Identity/HttpClientHelper.cs"));
+        var helper = TemplateTestFixture.FileContent(files, "HttpClientHelper.cs");
+
+        // Framework-neutral: no MAUI types, so it stays compilable from Blazor WebAssembly too.
+        Assert.DoesNotContain("DeviceInfo", helper);
+        Assert.DoesNotContain("Microsoft.Maui", helper);
+        Assert.Contains("IdentityBasePath", helper);
+    }
+
+    [Fact]
+    public void TokenStorage_is_generated_from_the_ClientShared_template_with_explicit_keys()
+    {
+        var files = TemplateTestFixture.Generate("ClientShared", ClientSharedParams());
+
+        Assert.True(TemplateTestFixture.HasFile(files, "Identity/TokenStorage.cs"));
+        var storage = TemplateTestFixture.FileContent(files, "TokenStorage.cs");
+
+        // ILocalStorageService's [CallerMemberName] default means an omitted key silently
+        // stores under the calling method's name — every call here must pass one explicitly.
+        Assert.Contains("identity_access_token", storage);
+        Assert.Contains("identity_refresh_token", storage);
+        Assert.Contains("identity_expires_at", storage);
+        Assert.Contains("GetAccessTokenAsync", storage);
+        Assert.Contains("GetRefreshTokenAsync", storage);
+        Assert.Contains("SaveAsync", storage);
+        Assert.Contains("ClearAsync", storage);
+        Assert.Contains("IsExpiringSoonAsync", storage);
+    }
 }

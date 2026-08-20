@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using {{ProjectName}}.ClientShared;
 using {{ProjectName}}.ClientShared.Extensions;
+using {{ProjectName}}.ClientShared.Identity;
 using {{ProjectName}}.Framework;
 using {{ProjectName}}.HybridApp.Services;
 {{#if (eq UIFramework "FluentUI")}}
@@ -22,18 +23,19 @@ namespace {{ProjectName}}.HybridApp
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddBlazorWebViewDeveloperTools();
-            builder.Services.AddScoped<TokenHandler>();
             builder.Services.AddClientSideFeatureServices();
             builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
+            builder.Services.AddSingleton<TokenStorage>();
 
             // Dialog Service
             builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.DialogService>();
             builder.Services.AddHttpClient<BaseHttpClient, HttpTokenClient>("ServerAPI", client =>
             {
-    #if DEBUG
-                    client.BaseAddress = new Uri("https://localhost:7202");
+    #if ANDROID
+                    // Android emulators reach the host loopback via 10.0.2.2; "localhost" is the emulated device itself.
+                    client.BaseAddress = new Uri("https://10.0.2.2:7202");
     #else
-                client.BaseAddress = new Uri("https://localhost:7202");
+                    client.BaseAddress = new Uri("https://localhost:7202");
     #endif
             });
 

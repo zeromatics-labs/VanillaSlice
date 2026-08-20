@@ -42,8 +42,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<{{ProjectName}}.Framework.Services.DialogService>();
         builder.Services.AddHttpClient<BaseHttpClient, HttpTokenClient>("ServerAPI", client =>
         {
-#if DEBUG
-            client.BaseAddress = new Uri("https://localhost:7202");
+#if ANDROID
+            // Android emulators reach the host loopback via 10.0.2.2; "localhost" is the emulated device itself.
+            client.BaseAddress = new Uri("https://10.0.2.2:7202");
 #else
             client.BaseAddress = new Uri("https://localhost:7202");
 #endif
