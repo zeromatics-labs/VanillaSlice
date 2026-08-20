@@ -45,6 +45,11 @@ namespace ZKnow.VanillaStudio.Models
         public bool IncludeSampleComponents { get; set; } = true;
         public bool IncludeSampleData { get; set; } = true;
 
+        // Email Configuration (used when IncludeAuthentication is true — account confirmation
+        // and password reset both send links through the selected provider)
+        public EmailProvider EmailProvider { get; set; } = EmailProvider.Dev;
+        public string EmailFromAddress { get; set; } = "noreply@localhost";
+
         // Database Configuration
         public DatabaseProvider DatabaseProvider { get; set; } = DatabaseProvider.SqlServer;
         public string ConnectionStringName { get; set; } = "DefaultConnection";
@@ -158,6 +163,18 @@ namespace ZKnow.VanillaStudio.Models
 
         [Display(Name = "No Database")]
         None = 4
+    }
+
+    public enum EmailProvider
+    {
+        [Display(Name = "Development (writes links to console and sent-emails/)")]
+        Dev = 1,
+
+        [Display(Name = "SMTP")]
+        Smtp = 2,
+
+        [Display(Name = "SendGrid")]
+        SendGrid = 3
     }
 
     public enum UIFramework

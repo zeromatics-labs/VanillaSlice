@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using {{ProjectName}}.Server.Data;
 using {{ProjectName}}.Server.DataServices.Extensions;
+using {{ProjectName}}.Server.Data.Services;
 using {{ProjectName}}.WebPortal.Components;
 using {{ProjectName}}.WebPortal.Components.Account;
 {{#if (eq UIFramework "FluentUI")}}
@@ -64,7 +65,15 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+{{#if (eq EmailProvider "Dev")}}
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, DevEmailSender>();
+{{/if}}
+{{#if (eq EmailProvider "Smtp")}}
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, SmtpEmailSender>();
+{{/if}}
+{{#if (eq EmailProvider "SendGrid")}}
+builder.Services.AddHttpClient<IEmailSender<ApplicationUser>, SendGridEmailSender>();
+{{/if}}
 builder.Services.AddServerSideFeatureServices();
 
 // Dialog Service

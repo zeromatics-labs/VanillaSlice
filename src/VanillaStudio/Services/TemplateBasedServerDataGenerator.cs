@@ -27,7 +27,8 @@ namespace ZKnow.VanillaStudio.Services
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
                     ["IncludeAuthentication"] = config.IncludeAuthentication,
                     ["IncludeSampleData"] = config.IncludeSampleData,
-                    ["DatabaseProvider"] = config.DatabaseProvider.ToString()
+                    ["DatabaseProvider"] = config.DatabaseProvider.ToString(),
+                    ["EmailFromAddress"] = config.EmailFromAddress
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(

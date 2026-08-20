@@ -455,6 +455,26 @@
                                         <div class="form-text">ASP.NET Core Identity</div>
                                     </div>
 
+                                    @if (config.IncludeAuthentication)
+                                    {
+                                        <div class="mb-3">
+                                            <label for="emailProvider" class="form-label">Email Provider</label>
+                                            <InputSelect id="emailProvider" class="form-select" @bind-Value="config.EmailProvider">
+                                                <option value="@EmailProvider.Dev">Development (console + sent-emails/)</option>
+                                                <option value="@EmailProvider.Smtp">SMTP</option>
+                                                <option value="@EmailProvider.SendGrid">SendGrid</option>
+                                            </InputSelect>
+                                            <div class="form-text">
+                                                Account confirmation is required. Development writes the confirmation link to the
+                                                console and to sent-emails/ so you can complete signup without configuring a mail server.
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="emailFrom" class="form-label">From Address</label>
+                                            <InputText id="emailFrom" class="form-control" @bind-Value="config.EmailFromAddress" />
+                                        </div>
+                                    }
+
                                     <div class="form-check mb-3">
                                         <InputCheckbox id="includeDb" class="form-check-input" @bind-Value="config.IncludeDatabase" />
                                         <label class="form-check-label" for="includeDb">

@@ -55,7 +55,9 @@ namespace ZKnow.VanillaStudio.Services
                     ["RootNamespace"] = $"{config.ProjectName}.WebAPI",
                     ["TargetFramework"] = config.TargetFramework,
                     ["AspNetCoreVersion"] = config.AspNetCoreVersion,
-                    ["DatabaseProvider"] = config.DatabaseProvider.ToString()
+                    ["DatabaseProvider"] = config.DatabaseProvider.ToString(),
+                    ["EmailProvider"] = config.EmailProvider.ToString(),
+                    ["EmailFromAddress"] = config.EmailFromAddress
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(

@@ -9,6 +9,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="{{AspNetCoreVersion}}" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="{{AspNetCoreVersion}}" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="{{AspNetCoreVersion}}" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="{{AspNetCoreVersion}}" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="{{AspNetCoreVersion}}" />
+  </ItemGroup>
+
+  <!--
+    This is a plain Microsoft.NET.Sdk library (not Sdk.Web), so it does not get the ASP.NET Core
+    shared framework automatically. IEmailSender<TUser> lives in Microsoft.AspNetCore.Identity.dll,
+    which ships in the Microsoft.AspNetCore.App shared framework, not in any of the Identity NuGet
+    packages above (those only provide IdentityUser and the EF Core store). Without this reference,
+    Services/DevEmailSender.cs and friends fail to compile with CS0246 on IEmailSender<>.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

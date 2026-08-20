@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using {{ProjectName}}.Server.Data;
+using {{ProjectName}}.Server.Data.Services;
 using {{ProjectName}}.Server.DataServices.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,16 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true;
     })
     .AddEntityFrameworkStores<AppDbContext>();
+
+{{#if (eq EmailProvider "Dev")}}
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, DevEmailSender>();
+{{/if}}
+{{#if (eq EmailProvider "Smtp")}}
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, SmtpEmailSender>();
+{{/if}}
+{{#if (eq EmailProvider "SendGrid")}}
+builder.Services.AddHttpClient<IEmailSender<ApplicationUser>, SendGridEmailSender>();
+{{/if}}
 
 builder.Services.AddAuthorization();
 

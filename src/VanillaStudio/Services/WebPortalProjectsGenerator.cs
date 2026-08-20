@@ -71,7 +71,9 @@ namespace ZKnow.VanillaStudio.Services
                     ["IncludeAuthentication"] = config.IncludeAuthentication,
                     ["UserSecretsId"] = Guid.NewGuid().ToString(),
                     ["UIFramework"] = config.UIFramework.ToString(),
-                    ["DatabaseProvider"] = config.DatabaseProvider.ToString()
+                    ["DatabaseProvider"] = config.DatabaseProvider.ToString(),
+                    ["EmailProvider"] = config.EmailProvider.ToString(),
+                    ["EmailFromAddress"] = config.EmailFromAddress
                 };
 
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(
