@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZKnow.VanillaStudio.Models;
 using ZKnow.VanillaStudio.Services;
@@ -731,5 +732,104 @@ public class IdentityGenerationTests
 
         var listing = TemplateTestFixture.FileContent(files, "ProductListing.razor");
         Assert.Contains("@attribute [Authorize]", listing);
+    }
+
+    // Review fix-round (Task 13): the two tests above go through TemplateTestFixture.Generate,
+    // which supplies the parameter dictionary directly and so bypasses
+    // PlatformProjectsGenerator.GenerateRazorLibraryProjectAsync entirely. A future edit that
+    // drops the ["IncludeAuthentication"] entry from that method's dictionary (~line 146) would
+    // silently remove [Authorize] from every generated ProductListing while every test above
+    // kept passing. This test exercises the real generator method instead, so the plumbing
+    // itself is covered, not just the template's conditional syntax.
+    [Fact]
+    public async Task PlatformProjectsGenerator_passes_IncludeAuthentication_through_to_RazorLibrary()
+    {
+        var engine = new TemplateEngineService(
+            NullLogger<TemplateEngineService>.Instance, TemplateTestFixture.TemplatesPath);
+        var generator = new PlatformProjectsGenerator(
+            NullLogger<PlatformProjectsGenerator>.Instance, engine);
+
+        var enabledFiles = await generator.GenerateRazorLibraryProjectAsync(
+            new ProjectConfiguration { ProjectName = "Acme", IncludeAuthentication = true });
+        var enabledListing = TemplateTestFixture.FileContent(enabledFiles, "ProductListing.razor");
+        Assert.Contains("@attribute [Authorize]", enabledListing);
+
+        var disabledFiles = await generator.GenerateRazorLibraryProjectAsync(
+            new ProjectConfiguration { ProjectName = "Acme", IncludeAuthentication = false });
+        var disabledListing = TemplateTestFixture.FileContent(disabledFiles, "ProductListing.razor");
+        Assert.DoesNotContain("@attribute [Authorize]", disabledListing);
+    }
+
+    // Ruling Y (task 13 review): four cheap content assertions for changes this task made that
+    // were otherwise covered by nothing.
+    [Fact]
+    public void Hybrid_MauiProgram_supplies_cascading_authentication_state()
+    {
+        // Without AddCascadingAuthenticationState(), AuthorizeRouteView/AuthorizeView have no
+        // cascading AuthenticationState to read and render as unauthorised for every user,
+        // regardless of sign-in state — a total-lockout bug, not just a missing feature.
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+        Assert.Contains("AddCascadingAuthenticationState()", mauiProgram);
+    }
+
+    [Fact]
+    public void Hybrid_Routes_uses_AuthorizeRouteView_and_RedirectToLogin()
+    {
+        var files = TemplateTestFixture.Generate("HybridApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+        });
+
+        var routes = TemplateTestFixture.FileContent(files, "Components/Routes.razor");
+        Assert.Contains("AuthorizeRouteView", routes);
+        Assert.Contains("RedirectToLogin", routes);
+    }
+
+    [Theory]
+    [InlineData("Tabs", "AppShellTabs")]
+    [InlineData("Flyout", "AppShellFlyout")]
+    public void Native_MauiProgram_registers_the_selected_shell_for_DI(string navigationType, string expectedShellType)
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = navigationType,
+        });
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+        Assert.Contains($"AddTransient<{expectedShellType}>()", mauiProgram);
+    }
+
+    [Fact]
+    public void Native_flyout_logout_signs_out_and_navigates_to_login_relatively()
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = "Flyout",
+        });
+
+        var shell = TemplateTestFixture.FileContent(files, "Views/AppShellFlyout.xaml.cs");
+
+        var logoutStart = shell.IndexOf("OnLogoutClicked", StringComparison.Ordinal);
+        Assert.True(logoutStart >= 0, "OnLogoutClicked handler not found.");
+        var logoutMethod = shell[logoutStart..];
+
+        Assert.Contains("LogOutAsync", logoutMethod);
+        Assert.Contains("GoToAsync(\"login\")", logoutMethod);
+        // "//" only addresses the Shell's visual hierarchy; "login" is a global route
+        // (Routing.RegisterRoute), so a "//" prefix here would throw at runtime.
+        Assert.DoesNotContain("//login", shell);
     }
 }
