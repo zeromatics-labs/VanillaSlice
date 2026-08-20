@@ -107,4 +107,33 @@ public class IdentityGenerationTests
         Assert.Contains("app.UseAuthorization();", program);
         Assert.Contains("app.MapGroup(\"/identity\").MapIdentityApi<ApplicationUser>();", program);
     }
+
+    [Theory]
+    [InlineData("Components/Account/Pages/Register.razor")]
+    [InlineData("Components/Account/Pages/Login.razor")]
+    [InlineData("Components/Account/Pages/ForgotPassword.razor")]
+    [InlineData("Components/Account/Pages/ResetPassword.razor")]
+    [InlineData("Components/Account/Pages/ConfirmEmail.razor")]
+    [InlineData("Components/Account/Pages/ResendEmailConfirmation.razor")]
+    [InlineData("Components/Account/Pages/Manage/ChangePassword.razor")]
+    [InlineData("Components/Account/Pages/Manage/EnableAuthenticator.razor")]
+    [InlineData("Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs")]
+    public void WebPortal_generates_the_full_Account_scaffold(string expectedPath)
+    {
+        var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
+        Assert.True(TemplateTestFixture.HasFile(files, expectedPath),
+            $"Expected generated file '{expectedPath}'");
+    }
+
+    [Fact]
+    public void Account_scaffold_namespaces_are_tokenised_to_the_project_name()
+    {
+        var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
+        var register = TemplateTestFixture.FileContent(files, "Account/Pages/Register.razor");
+
+        Assert.Contains("Acme.", register);
+        Assert.DoesNotContain("{{ProjectName}}", register);
+        // The scaffold's own placeholder namespace must not survive the copy.
+        Assert.DoesNotContain("BlazorIdentityScaffold", register);
+    }
 }

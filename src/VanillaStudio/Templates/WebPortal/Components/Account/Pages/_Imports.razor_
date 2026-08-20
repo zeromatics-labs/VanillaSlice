@@ -1,0 +1,2 @@
+﻿@using {{ProjectName}}.WebPortal.Components.Account.Shared
+@attribute [ExcludeFromInteractiveRouting]
