@@ -13,7 +13,22 @@ namespace ZKnow.VanillaStudio.Services
             _templateEngine = templateEngine;
         }
 
-        public async Task<List<GeneratedFile>> GenerateAllWebPortalProjectsAsync(ProjectConfiguration config)
+        /// <summary>
+    /// Decides which template files belong in the generated WebPortal project.
+    /// The path is template-relative with forward slashes, before placeholder substitution.
+    /// </summary>
+    public static Func<string, bool> IncludeFileFor(ProjectConfiguration config) => path =>
+    {
+        if (!config.IncludeAuthentication &&
+            path.StartsWith("Components/Account/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+    public async Task<List<GeneratedFile>> GenerateAllWebPortalProjectsAsync(ProjectConfiguration config)
         {
             var files = new List<GeneratedFile>();
 
@@ -61,7 +76,8 @@ namespace ZKnow.VanillaStudio.Services
                 var generatedFiles = await _templateEngine.GenerateFromTemplateAsync(
                     "WebPortal",
                     parameters,
-                    $"{config.ProjectName}.WebPortal/{config.ProjectName}.WebPortal");
+                    $"{config.ProjectName}.WebPortal/{config.ProjectName}.WebPortal",
+                    IncludeFileFor(config));
 
                 _logger.LogInformation("✅ Generated {FileCount} WebPortal main project files", generatedFiles.Count);
                 return generatedFiles;

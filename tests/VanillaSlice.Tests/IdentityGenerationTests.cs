@@ -1,4 +1,6 @@
 using Xunit;
+using ZKnow.VanillaStudio.Models;
+using ZKnow.VanillaStudio.Services;
 
 namespace VanillaSlice.Tests;
 
@@ -25,5 +27,26 @@ public class IdentityGenerationTests
     {
         var files = TemplateTestFixture.Generate("WebPortal", WebPortalParams());
         Assert.True(TemplateTestFixture.HasFile(files, "Program.cs"));
+    }
+
+    [Fact]
+    public void Account_pages_are_excluded_when_authentication_is_off()
+    {
+        var config = new ProjectConfiguration { ProjectName = "Acme", IncludeAuthentication = false };
+        var predicate = WebPortalProjectsGenerator.IncludeFileFor(config);
+
+        Assert.False(predicate("Components/Account/Pages/Login.razor_"));
+        Assert.False(predicate("Components/Account/IdentityUserAccessor.cs"));
+        Assert.True(predicate("Program.cs"));
+    }
+
+    [Fact]
+    public void Account_pages_are_included_when_authentication_is_on()
+    {
+        var config = new ProjectConfiguration { ProjectName = "Acme", IncludeAuthentication = true };
+        var predicate = WebPortalProjectsGenerator.IncludeFileFor(config);
+
+        Assert.True(predicate("Components/Account/Pages/Login.razor_"));
+        Assert.True(predicate("Program.cs"));
     }
 }
