@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="{{ProjectName}}.MauiNativeApp.Features.Account.RegisterPage"
+             Title="Create account"
+             Shell.NavBarIsVisible="True">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16" VerticalOptions="Center">
+            <Label Text="Create account" FontSize="28" FontAttributes="Bold" />
+
+            <Label x:Name="ErrorLabel" TextColor="Red" IsVisible="False" />
+
+            <VerticalStackLayout x:Name="FormLayout" Spacing="16">
+                <Entry x:Name="EmailEntry" Placeholder="Email" Keyboard="Email" />
+                <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
+
+                <Button x:Name="RegisterButton" Text="Register" Clicked="OnRegisterClicked" />
+            </VerticalStackLayout>
+
+            <Label x:Name="ConfirmationLabel" IsVisible="False" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

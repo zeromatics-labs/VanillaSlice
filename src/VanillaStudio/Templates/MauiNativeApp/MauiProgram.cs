@@ -7,6 +7,7 @@ using {{ProjectName}}.Framework;
 using {{ProjectName}}.NativeMauiApp.Services;
 using {{ProjectName}}.MauiNativeApp.Views;
 using {{ProjectName}}.MauiNativeApp.Features.Products;
+using {{ProjectName}}.MauiNativeApp.Features.Account;
 using {{ProjectName}}.MauiNativeApp.ViewModels;
 using CommunityToolkit.Maui;
 
@@ -67,6 +68,11 @@ public static class MauiProgram
         builder.Services.AddScoped<MauiAuthenticationStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(s =>
             s.GetRequiredService<MauiAuthenticationStateProvider>());
+
+        // Account pages
+        builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<ForgotPasswordPage>();
 
 #if DEBUG
         builder.Services.AddLogging(logging =>

@@ -575,4 +575,130 @@ public class IdentityGenerationTests
         Assert.False(TemplateTestFixture.HasFile(files, "Account/Logout.razor"));
         Assert.False(TemplateTestFixture.HasFile(files, "Account/ForgotPassword.razor"));
     }
+
+    // Task 12: native XAML account pages for the MAUI Native app. The generator's real
+    // parameter is "NavigationType" (values "Tabs"/"Flyout" — see
+    // MauiNativeAppProjectsGenerator.cs:32 and App.xaml.cs's `{{#if (eq NavigationType ...)}}`),
+    // not "MauiNavigationType".
+    [Theory]
+    [InlineData("Features/Account/LoginPage.xaml")]
+    [InlineData("Features/Account/LoginPage.xaml.cs")]
+    [InlineData("Features/Account/RegisterPage.xaml")]
+    [InlineData("Features/Account/RegisterPage.xaml.cs")]
+    [InlineData("Features/Account/ForgotPasswordPage.xaml")]
+    [InlineData("Features/Account/ForgotPasswordPage.xaml.cs")]
+    public void Native_app_provides_account_pages(string expectedPath)
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["UIFramework"] = "Bootstrap",
+            ["NavigationType"] = "Tabs",
+        });
+
+        Assert.True(TemplateTestFixture.HasFile(files, expectedPath));
+    }
+
+    [Theory]
+    [InlineData("Tabs")]
+    [InlineData("Flyout")]
+    public void Native_app_account_pages_generate_for_both_navigation_types(string navigationType)
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = navigationType,
+        });
+
+        Assert.True(TemplateTestFixture.HasFile(files, "Features/Account/LoginPage.xaml"));
+        Assert.True(TemplateTestFixture.HasFile(files, "Features/Account/RegisterPage.xaml"));
+        Assert.True(TemplateTestFixture.HasFile(files, "Features/Account/ForgotPasswordPage.xaml"));
+    }
+
+    [Fact]
+    public void Native_login_page_uses_the_maui_state_provider_and_valid_shell_routes()
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = "Tabs",
+        });
+
+        var loginXaml = TemplateTestFixture.FileContent(files, "Features/Account/LoginPage.xaml");
+        Assert.Contains("x:Class=\"Acme.MauiNativeApp.Features.Account.LoginPage\"", loginXaml);
+
+        var loginCs = TemplateTestFixture.FileContent(files, "Features/Account/LoginPage.xaml.cs");
+        Assert.Contains("MauiAuthenticationStateProvider", loginCs);
+        Assert.Contains("LogInAsync", loginCs);
+
+        // "MainPage" is the ShellContent route declared by AppShellTabs/AppShellFlyout.
+        // Routes registered via Routing.RegisterRoute are navigated relatively — "//" only
+        // addresses the Shell's visual hierarchy, so "//login" would throw at runtime.
+        Assert.Contains("Shell.Current.GoToAsync(\"//MainPage\")", loginCs);
+        Assert.DoesNotContain("//login", loginCs);
+        Assert.DoesNotContain("//main", loginCs);
+        Assert.Contains("Shell.Current.GoToAsync(\"register\")", loginCs);
+        Assert.Contains("Shell.Current.GoToAsync(\"forgot-password\")", loginCs);
+    }
+
+    [Fact]
+    public void Native_register_page_does_not_sign_in_on_success()
+    {
+        // RequireConfirmedAccount is true (WebAPI Program.cs), so a successful registration
+        // must show a "check your email" state rather than calling LogInAsync.
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = "Tabs",
+        });
+
+        var registerCs = TemplateTestFixture.FileContent(files, "Features/Account/RegisterPage.xaml.cs");
+        Assert.Contains("RegisterAsync", registerCs);
+        Assert.DoesNotContain("LogInAsync", registerCs);
+        Assert.DoesNotContain("GoToAsync", registerCs);
+    }
+
+    [Fact]
+    public void Native_forgot_password_page_never_reveals_account_existence()
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = "Tabs",
+        });
+
+        var forgotCs = TemplateTestFixture.FileContent(files, "Features/Account/ForgotPasswordPage.xaml.cs");
+        Assert.Contains("ForgotPasswordAsync", forgotCs);
+        // The confirmation branch must not be gated on the call's success/failure result.
+        Assert.DoesNotContain("if (result", forgotCs);
+    }
+
+    [Fact]
+    public void Native_app_registers_account_pages_and_shell_routes()
+    {
+        var files = TemplateTestFixture.Generate("MauiNativeApp", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+            ["NavigationType"] = "Tabs",
+        });
+
+        var mauiProgram = TemplateTestFixture.FileContent(files, "MauiProgram.cs");
+        Assert.Contains("AddTransient<LoginPage>()", mauiProgram);
+        Assert.Contains("AddTransient<RegisterPage>()", mauiProgram);
+        Assert.Contains("AddTransient<ForgotPasswordPage>()", mauiProgram);
+
+        foreach (var shellFile in new[] { "Views/AppShellTabs.xaml.cs", "Views/AppShellFlyout.xaml.cs" })
+        {
+            var shell = TemplateTestFixture.FileContent(files, shellFile);
+            Assert.Contains("Routing.RegisterRoute(\"login\", typeof(LoginPage))", shell);
+            Assert.Contains("Routing.RegisterRoute(\"register\", typeof(RegisterPage))", shell);
+            Assert.Contains("Routing.RegisterRoute(\"forgot-password\", typeof(ForgotPasswordPage))", shell);
+        }
+    }
 }
