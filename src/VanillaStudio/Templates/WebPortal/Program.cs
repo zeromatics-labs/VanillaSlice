@@ -55,7 +55,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString);
 {{/if}}
 {{#if (eq DatabaseProvider "SQLite")}}
-    options.UseSqlite(connectionString);
+    options.UseSqlite(Environment.ExpandEnvironmentVariables(connectionString));
 {{/if}}
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

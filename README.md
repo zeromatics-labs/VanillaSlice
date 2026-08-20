@@ -31,8 +31,8 @@ SliceFactory generates end-to-end feature slices—Listing and Form—each conta
 
 ### ✅ **Database Support**
 - **SQL Server** - ✅ **Fully Implemented** — EF Core + Identity + migrations
-- **SQLite** - ✅ **Fully Implemented** — lightweight dev/test option
-- **PostgreSQL** - ✅ **Fully Implemented** — open-source production option
+- **SQLite** - ✅ **Fully Implemented** — lightweight dev/test option; no EF migration is scaffolded, so `Development` startup calls `EnsureCreated()` instead — run `dotnet ef migrations add InitialCreate` yourself before relying on migrations for a production schema
+- **PostgreSQL** - ✅ **Fully Implemented** — open-source production option; no EF migration is scaffolded, so `Development` startup calls `EnsureCreated()` instead — run `dotnet ef migrations add InitialCreate` yourself before relying on migrations for a production schema
 - **No Database Option** - ✅ **Fully Implemented** — API-only or external data sources
 
 ### ✅ **Authentication & Security**
@@ -161,7 +161,7 @@ The generated solutions follow **Clean Architecture** principles:
 - **SQLite**: Development and lightweight deployment scenarios
 - **No Database**: In-memory or external data source integrations
 
-> All four providers are fully selectable in the project wizard and generate correct EF Core configuration, migrations support, and connection string setup.
+> All four providers are fully selectable in the project wizard and generate correct EF Core configuration and connection string setup. Only SQL Server ships a checked-in EF migration; SQLite and PostgreSQL projects rely on `EnsureCreated()` in Development until you run `dotnet ef migrations add InitialCreate` yourself.
 
 ### Entity Framework Features
 - Code-first migrations

@@ -20,7 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString);
 {{/if}}
 {{#if (eq DatabaseProvider "SQLite")}}
-    options.UseSqlite(connectionString);
+    options.UseSqlite(Environment.ExpandEnvironmentVariables(connectionString));
 {{/if}}
 });
 
@@ -59,6 +59,16 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+{{#if (eq DatabaseProvider "SqlServer")}}
+    dbContext.Database.Migrate();
+{{/if}}
+{{#unless (eq DatabaseProvider "SqlServer")}}
+    // No checked-in EF migration ships for this provider; create the schema directly.
+    dbContext.Database.EnsureCreated();
+{{/unless}}
 }
 
 app.UseHttpsRedirection();

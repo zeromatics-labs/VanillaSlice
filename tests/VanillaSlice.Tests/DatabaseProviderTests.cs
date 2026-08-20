@@ -175,7 +175,7 @@ public class DatabaseProviderTests
     [Theory]
     [InlineData("SqlServer", "Server=(local);Database=Acme;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;")]
     [InlineData("PostgreSQL", "Host=localhost;Database=Acme;Username=postgres;Password=postgres")]
-    [InlineData("SQLite", "Data Source=Acme.db")]
+    [InlineData("SQLite", "Data Source=%LOCALAPPDATA%/Acme.db")]
     public void WebPortal_appsettings_connection_string_matches_the_selected_provider(string provider, string expectedConnectionString)
     {
         var files = TemplateTestFixture.Generate(
@@ -189,7 +189,7 @@ public class DatabaseProviderTests
     [Theory]
     [InlineData("SqlServer", "Server=(local);Database=Acme;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;")]
     [InlineData("PostgreSQL", "Host=localhost;Database=Acme;Username=postgres;Password=postgres")]
-    [InlineData("SQLite", "Data Source=Acme.db")]
+    [InlineData("SQLite", "Data Source=%LOCALAPPDATA%/Acme.db")]
     public void WebAPI_appsettings_connection_string_matches_the_selected_provider(string provider, string expectedConnectionString)
     {
         var files = TemplateTestFixture.Generate("WebAPI", WebApiParams(databaseProvider: provider));
@@ -208,5 +208,68 @@ public class DatabaseProviderTests
 
         Assert.DoesNotContain("DefaultConnection", appsettings);
         using var _ = System.Text.Json.JsonDocument.Parse(appsettings);
+    }
+
+    // Finding 1: on SQLite, WebPortal and WebAPI must share ONE database file. A bare relative
+    // filename resolves against each host's own working directory (they differ — WebPortal's
+    // csproj is nested two folders deep, WebAPI's is one), so both hosts need an identical,
+    // CWD-independent connection string rooted at the user profile instead.
+    [Fact]
+    public void WebPortal_and_WebAPI_render_the_identical_SQLite_connection_string()
+    {
+        var webPortalFiles = TemplateTestFixture.Generate(
+            "WebPortal", IdentityGenerationTests.WebPortalParams(databaseProvider: "SQLite"));
+        var webApiFiles = TemplateTestFixture.Generate("WebAPI", WebApiParams(databaseProvider: "SQLite"));
+
+        var webPortalAppsettings = TemplateTestFixture.FileContent(webPortalFiles, "appsettings.Development.json");
+        var webApiAppsettings = TemplateTestFixture.FileContent(webApiFiles, "appsettings.Development.json");
+
+        using var webPortalDoc = System.Text.Json.JsonDocument.Parse(webPortalAppsettings);
+        using var webApiDoc = System.Text.Json.JsonDocument.Parse(webApiAppsettings);
+
+        var webPortalConnection = webPortalDoc.RootElement
+            .GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
+        var webApiConnection = webApiDoc.RootElement
+            .GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
+
+        Assert.Equal(webPortalConnection, webApiConnection);
+        // Rooted at the user profile, not a bare filename resolved against each host's CWD.
+        Assert.StartsWith("Data Source=%LOCALAPPDATA%/", webPortalConnection);
+    }
+
+    // Finding 1: whichever host starts first must create the shared schema, so both hosts need
+    // the same Development-only Migrate()/EnsureCreated() split WebPortal already had.
+    [Theory]
+    [InlineData("SqlServer", "dbContext.Database.Migrate();")]
+    [InlineData("PostgreSQL", "dbContext.Database.EnsureCreated();")]
+    [InlineData("SQLite", "dbContext.Database.EnsureCreated();")]
+    public void WebPortal_Program_creates_schema_in_Development_for_the_selected_provider(string provider, string expectedCall)
+    {
+        var files = TemplateTestFixture.Generate(
+            "WebPortal", IdentityGenerationTests.WebPortalParams(databaseProvider: provider));
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains(expectedCall, program);
+    }
+
+    [Theory]
+    [InlineData("SqlServer", "dbContext.Database.Migrate();")]
+    [InlineData("PostgreSQL", "dbContext.Database.EnsureCreated();")]
+    [InlineData("SQLite", "dbContext.Database.EnsureCreated();")]
+    public void WebAPI_Program_creates_schema_in_Development_for_the_selected_provider(string provider, string expectedCall)
+    {
+        var files = TemplateTestFixture.Generate("WebAPI", WebApiParams(databaseProvider: provider));
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains(expectedCall, program);
+    }
+
+    [Fact]
+    public void WebAPI_Program_does_not_call_Migrate_when_provider_is_not_SqlServer()
+    {
+        var files = TemplateTestFixture.Generate("WebAPI", WebApiParams(databaseProvider: "SQLite"));
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.DoesNotContain("dbContext.Database.Migrate();", program);
     }
 }
