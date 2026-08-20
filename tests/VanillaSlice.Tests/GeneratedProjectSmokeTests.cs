@@ -13,9 +13,16 @@ namespace VanillaSlice.Tests;
 /// deliberate too: it is the only mode that generates WebPortal.Client, which
 /// owns the Routes component App.razor renders.
 ///
-/// Runs against both Bootstrap and Tailwind CSS (spec §7 minimum). FluentUI,
-/// MudBlazor and Radzen use third-party component libraries whose APIs could
-/// not be verified offline, so they are not covered here.
+/// Runs against both Bootstrap and Tailwind CSS (spec §7 minimum) with
+/// IncludeHybridMaui = false, so this test never generates — and never compiles —
+/// HybridApp (net10.0-android;net10.0-ios;net10.0-maccatalyst needs a full MAUI
+/// toolchain this test cannot assume). That means it does NOT exercise the
+/// UIFramework-conditional Account screens under Templates/HybridApp/Components/Pages/Account
+/// (Login/Register/Logout/ForgotPassword) for any framework, Bootstrap and Tailwind included —
+/// extending this Theory would not add coverage for that markup. FluentUI, MudBlazor and
+/// Radzen are covered for that markup instead by AccountPageCompileTests, which compiles a
+/// throwaway net10.0 Razor Class Library containing the real generated Account pages against
+/// each framework's real pinned package version, without needing the MAUI workload.
 /// </summary>
 [Trait("Category", "Smoke")]
 public class GeneratedProjectSmokeTests
