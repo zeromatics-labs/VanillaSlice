@@ -369,3 +369,6 @@ Properties/launchSettings.json
 # Playwright / design review artifacts
 .playwright-mcp/
 /*.png
+
+# Superpowers SDD scratch workspace
+.superpowers/
