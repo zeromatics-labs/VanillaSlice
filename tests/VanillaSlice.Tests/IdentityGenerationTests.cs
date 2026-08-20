@@ -349,4 +349,38 @@ public class IdentityGenerationTests
         Assert.Contains("ClearAsync", storage);
         Assert.Contains("IsExpiringSoonAsync", storage);
     }
+
+    [Fact]
+    public void Identity_client_targets_the_mapped_identity_endpoints()
+    {
+        var files = TemplateTestFixture.Generate("ClientShared", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+        });
+
+        var client = TemplateTestFixture.FileContent(files, "Identity/IdentityClient.cs");
+
+        // Must match the group prefix mapped in Task 5.
+        Assert.Contains("/identity/login", client);
+        Assert.Contains("/identity/register", client);
+        Assert.Contains("/identity/refresh", client);
+        Assert.Contains("/identity/manage/info", client);
+        // Bearer mode: useCookies must not be set from a native client.
+        Assert.DoesNotContain("useCookies=true", client);
+    }
+
+    [Fact]
+    public void HttpTokenClient_refreshes_once_on_401_instead_of_failing()
+    {
+        var files = TemplateTestFixture.Generate("ClientShared", new Dictionary<string, object>
+        {
+            ["ProjectName"] = "Acme",
+            ["TargetFramework"] = "net10.0",
+        });
+
+        var http = TemplateTestFixture.FileContent(files, "Helpers/BaseHttpClient.cs");
+
+        Assert.Contains("SendWithRefreshAsync", http);
+    }
 }

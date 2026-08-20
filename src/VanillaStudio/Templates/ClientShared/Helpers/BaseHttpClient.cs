@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using {{ProjectName}}.Framework;
+using {{ProjectName}}.ClientShared.Identity;
 using {{ProjectName}}.Framework.Utils;
 using {{ProjectName}}.ServiceContracts.Models;
 
@@ -19,26 +19,60 @@ public interface BaseHttpClient
 public class HttpTokenClient : BaseHttpClient
 {
     private readonly HttpClient _httpClient;
-    private readonly ILocalStorageService localStorageService;
+    private readonly TokenStorage _tokens;
+    private readonly IdentityClient _identityClient;
     public string BaseAddress { get; set; } = string.Empty;
 
-    public HttpTokenClient(HttpClient client, ILocalStorageService localStorageService)
+    // ILocalStorageService is not injected here: TokenStorage already wraps it, and routing
+    // every method through SendWithRefreshAsync means TokenStorage.GetAccessTokenAsync() is
+    // the only thing this class needs. Reading raw storage keys here would duplicate the key
+    // literals TokenStorage owns (Ruling S) and let the two silently drift apart on a rename.
+    public HttpTokenClient(HttpClient client, TokenStorage tokens, IdentityClient identityClient)
     {
         _httpClient = client;
-        this.localStorageService = localStorageService;
+        _tokens = tokens;
+        _identityClient = identityClient;
+    }
+
+    /// <summary>
+    /// Attaches the bearer token, sends, and on a 401 refreshes once and retries.
+    /// Without this an expired access token surfaces as a login prompt mid-session.
+    /// </summary>
+    private async Task<HttpResponseMessage> SendWithRefreshAsync(
+        Func<HttpRequestMessage> buildRequest)
+    {
+        _ = _httpClient ?? throw new ArgumentNullException($"{nameof(_httpClient)} is null in {GetType().Name}");
+
+        async Task<HttpResponseMessage> SendOnceAsync()
+        {
+            var request = buildRequest();
+            var authToken = await _tokens.GetAccessTokenAsync();
+            if (!string.IsNullOrEmpty(authToken))
+            {
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            }
+            return await _httpClient.SendAsync(request);
+        }
+
+        var response = await SendOnceAsync();
+        if (response.StatusCode != HttpStatusCode.Unauthorized) return response;
+
+        if (!await _identityClient.RefreshAsync())
+        {
+            throw new UnauthorizedAccessException("Please login to continue");
+        }
+
+        response.Dispose();
+        // Retried once, unconditionally returned: whatever status comes back here (even
+        // another 401) is handled by the caller's normal response check below, not by
+        // recursing back into SendWithRefreshAsync.
+        return await SendOnceAsync();
     }
 
     public async Task<T> GetFromJsonAsync<T>(string requestUri)
     {
-        _ = _httpClient ?? throw new ArgumentNullException($"{nameof(_httpClient)} is null in {GetType().Name}");
-        var authToken = await localStorageService.GetValue("auth_token");
-        if (!string.IsNullOrEmpty(authToken))
-        {
-            _httpClient.DefaultRequestHeaders.Remove("Authorization");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
-        }
-
-        var response = await _httpClient.GetAsync(requestUri);
+        var response = await SendWithRefreshAsync(() => new HttpRequestMessage(HttpMethod.Get, requestUri));
         var responseString = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -57,15 +91,10 @@ public class HttpTokenClient : BaseHttpClient
 
     public async Task<T> PostAsJsonAsync<T>(string requestUri, object formBusinessObject)
     {
-        _ = _httpClient ?? throw new ArgumentNullException($"{nameof(_httpClient)} is null in {GetType().Name}");
-        var authToken = await localStorageService.GetValue("auth_token");
-        if (!string.IsNullOrEmpty(authToken))
+        var response = await SendWithRefreshAsync(() => new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
-            _httpClient.DefaultRequestHeaders.Remove("Authorization");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
-        }
-
-        var response = await _httpClient.PostAsJsonAsync(requestUri, formBusinessObject);
+            Content = JsonContent.Create(formBusinessObject)
+        });
         var responseString = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -103,15 +132,10 @@ public class HttpTokenClient : BaseHttpClient
 
     public async Task<T> PutAsJsonAsync<T>(string requestUri, object formBusinessObject)
     {
-        _ = _httpClient ?? throw new ArgumentNullException($"{nameof(_httpClient)} is null in {GetType().Name}");
-        var authToken = await localStorageService.GetValue("auth_token");
-        if (!string.IsNullOrEmpty(authToken))
+        var response = await SendWithRefreshAsync(() => new HttpRequestMessage(HttpMethod.Put, requestUri)
         {
-            _httpClient.DefaultRequestHeaders.Remove("Authorization");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
-        }
-
-        var response = await _httpClient.PutAsJsonAsync(requestUri, formBusinessObject);
+            Content = JsonContent.Create(formBusinessObject)
+        });
         var responseString = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -149,15 +173,7 @@ public class HttpTokenClient : BaseHttpClient
 
     public async Task<T> DeleteAsync<T>(string requestUri)
     {
-        _ = _httpClient ?? throw new ArgumentNullException($"{nameof(_httpClient)} is null in {GetType().Name}");
-        var authToken = await localStorageService.GetValue("auth_token");
-        if (!string.IsNullOrEmpty(authToken))
-        {
-            _httpClient.DefaultRequestHeaders.Remove("Authorization");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
-        }
-
-        var response = await _httpClient.DeleteAsync(requestUri);
+        var response = await SendWithRefreshAsync(() => new HttpRequestMessage(HttpMethod.Delete, requestUri));
         var responseString = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
