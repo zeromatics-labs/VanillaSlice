@@ -55,7 +55,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString);
 {{/if}}
 {{#if (eq DatabaseProvider "SQLite")}}
-    options.UseSqlite(Environment.ExpandEnvironmentVariables(connectionString));
+    // Must resolve to the SAME file as the other host - see SqliteConnectionStringResolver.
+    options.UseSqlite(SqliteConnectionStringResolver.Resolve(connectionString));
 {{/if}}
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

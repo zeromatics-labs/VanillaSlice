@@ -272,4 +272,43 @@ public class DatabaseProviderTests
 
         Assert.DoesNotContain("dbContext.Database.Migrate();", program);
     }
+
+    // Regression: Environment.ExpandEnvironmentVariables leaves "%LOCALAPPDATA%" untouched on
+    // Linux/macOS (it's a Windows-only env var), which broke SQLite outright on non-Windows
+    // rather than just re-splitting the database file. Both hosts must instead call the shared,
+    // cross-platform SqliteConnectionStringResolver — never ExpandEnvironmentVariables directly.
+    [Fact]
+    public void WebPortal_Program_resolves_SQLite_connection_via_the_shared_resolver_not_EnvironmentExpand()
+    {
+        var files = TemplateTestFixture.Generate(
+            "WebPortal", IdentityGenerationTests.WebPortalParams(databaseProvider: "SQLite"));
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains("SqliteConnectionStringResolver.Resolve(connectionString)", program);
+        Assert.DoesNotContain("ExpandEnvironmentVariables", program);
+    }
+
+    [Fact]
+    public void WebAPI_Program_resolves_SQLite_connection_via_the_shared_resolver_not_EnvironmentExpand()
+    {
+        var files = TemplateTestFixture.Generate("WebAPI", WebApiParams(databaseProvider: "SQLite"));
+        var program = TemplateTestFixture.FileContent(files, "Program.cs");
+
+        Assert.Contains("SqliteConnectionStringResolver.Resolve(connectionString)", program);
+        Assert.DoesNotContain("ExpandEnvironmentVariables", program);
+    }
+
+    // The resolver both hosts share must use the cross-platform SpecialFolder API — not
+    // ExpandEnvironmentVariables, which silently no-ops on Linux/macOS — and must create the
+    // resolved directory itself, since SQLite will not create a missing parent folder.
+    [Fact]
+    public void ServerData_SqliteConnectionStringResolver_uses_the_cross_platform_special_folder_API()
+    {
+        var files = TemplateTestFixture.Generate("ServerData", ServerDataParams(databaseProvider: "SQLite"));
+        var resolver = TemplateTestFixture.FileContent(files, "SqliteConnectionStringResolver.cs");
+
+        Assert.Contains("Environment.SpecialFolder.LocalApplicationData", resolver);
+        Assert.Contains("Directory.CreateDirectory", resolver);
+        Assert.DoesNotContain("ExpandEnvironmentVariables", resolver);
+    }
 }
